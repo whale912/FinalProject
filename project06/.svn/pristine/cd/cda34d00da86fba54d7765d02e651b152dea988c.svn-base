@@ -1,0 +1,80 @@
+package project06.mvc.controller;
+
+import java.util.ArrayList;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import project06.mvc.service.YunbaeService;
+import project06.mvc.vo.Emp;
+import project06.mvc.vo.Gantt;
+import project06.mvc.vo.Task;
+import project06.mvc.vo.TaskDivision;
+
+@Controller
+@RequestMapping("/task.do")
+public class TaskController {
+	@Autowired(required=false)
+	private YunbaeService service;
+	@RequestMapping(params="method=dashboard")
+	public String personalDashboard(@ModelAttribute("emp") Emp emp,Model d) {
+		if(emp.getEmpno()!=""&&emp.getEmpno()!=null) {
+			d.addAttribute("project",service.getMyDetail(emp.getEmpno()));
+			d.addAttribute("MyTaskCount",service.getMyTaskCount(emp.getEmpno()));
+			d.addAttribute("ConfirmedCount",service.getConfirmedCount(emp.getEmpno()));
+			d.addAttribute("DelayedCount",service.getDelayedCount(emp.getEmpno()));
+			d.addAttribute("MeasuredCount",service.getMeasuredCount(emp.getEmpno()));
+			d.addAttribute("GoingCount",service.getGoingCount(emp.getEmpno()));
+			d.addAttribute("WaittingCount",service.getWaitCount(emp.getEmpno()));
+			d.addAttribute("RejectCount",service.getRejectCount(emp.getEmpno()));
+			d.addAttribute("blist", service.getMyProjectBoard(emp.getEmpno()));
+		}		
+		return "WEB-INF\\views\\yunbae\\task_main.jsp";
+	}
+	@RequestMapping(params="method=gantt")
+	public String ganttProject(Model d,@RequestParam("empno") String empno) {
+		ArrayList<Gantt> list = new ArrayList<Gantt>();
+		list = service.myProjectList(empno);
+		list.addAll(service.myPTaskList(empno));
+		list.addAll(service.myCTaskList(empno));
+		d.addAttribute("data",list);		
+		return "pageJsonReport";
+	}
+	@RequestMapping(params="method=manage")
+	public String taskManage(@ModelAttribute("emp") Emp emp, Model d) {
+		if(emp.getEmpno()!=""&&emp.getEmpno()!=null) {
+			d.addAttribute("tlist",service.getTaskManageList(emp.getEmpno()));			
+		}
+		return "WEB-INF\\views\\yunbae\\task_manage.jsp";
+	}
+	@RequestMapping(params="method=detail")
+	public String taskDetail(Task task,Model d) {
+		d.addAttribute("task",service.getTaskDetail(task));
+		return "WEB-INF\\views\\yunbae\\task_detail.jsp";
+	}
+	@RequestMapping(params="method=dinsert")
+	public String taskDivInsert(TaskDivision task, Model d) {
+		service.taskDivInsert(task);
+		return "WEB-INF\\views\\yunbae\\task_detail.jsp";
+	}
+	@RequestMapping(params="method=dupdate")
+	public String taskDivUpdate(TaskDivision task, Model d) {
+		service.taskDivUpdate(task);
+		return "WEB-INF\\views\\yunbae\\task_detail.jsp";
+	}
+	@RequestMapping(params="method=ddelete")
+	public String taskDivDelete(TaskDivision task, Model d) {
+		service.taskDivDelete(task);
+		return "WEB-INF\\views\\yunbae\\task_detail.jsp";
+	}
+	@RequestMapping(params="method=dlist")
+	public String getDivList(@ModelAttribute("task") Task task,Model d) {
+		d.addAttribute("dlist",service.getDivList(task));
+		return "pageJsonReport";
+	}
+
+}

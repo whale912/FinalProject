@@ -1,0 +1,53 @@
+package project06.mvc.vo;
+
+public class Schedule {
+	private int id;
+	private String text;
+	private String start_date;
+	private String end_date;
+	private String subject;
+	private boolean readonly;
+	private String empno;
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
+	}
+	public String getText() {
+		return text;
+	}
+	public void setText(String text) {
+		this.text = text;
+	}
+	public String getStart_date() {
+		return start_date;
+	}
+	public void setStart_date(String start_date) {
+		this.start_date = start_date;
+	}
+	public String getEnd_date() {
+		return end_date;
+	}
+	public void setEnd_date(String end_date) {
+		this.end_date = end_date;
+	}
+	public String getSubject() {
+		return subject;
+	}
+	public void setSubject(String subject) {
+		this.subject = subject;
+	}
+	public boolean isReadonly() {
+		return readonly;
+	}
+	public void setReadonly(boolean readonly) {
+		this.readonly = readonly;
+	}
+	public String getEmpno() {
+		return empno;
+	}
+	public void setEmpno(String empno) {
+		this.empno = empno;
+	}
+}

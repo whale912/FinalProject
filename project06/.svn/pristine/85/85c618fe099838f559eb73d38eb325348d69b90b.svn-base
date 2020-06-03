@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+ 	
+<mapper namespace="project06.mvc.repository.HyeongjunDao">
+	<select id="login" resultType="emp" parameterType="emp">
+		SELECT *FROM EMP
+		WHERE empno=#{empno} AND pass=#{pass}
+	</select>
+	
+	<select id="findEmpno" resultType="String" parameterType="emp">
+		SELECT empno FROM emp
+		WHERE name=#{name} AND EMAIL=#{email}
+	</select>
+	
+	<select id="findPass" resultType="Emp" parameterType="emp">
+		SELECT * 
+		FROM EMP
+		WHERE EMPNO=#{empno} AND NAME =#{name} AND EMAIL =#{email}
+	</select>
+	
+		
+	<update id="updatePass" parameterType="emp">
+		UPDATE EMP
+		SET PASS=#{pass}
+		WHERE EMPNO=#{empno}
+	</update>
+</mapper>

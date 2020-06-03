@@ -1,0 +1,390 @@
+/* 공통 sql문 */
+
+/*2020-05-11*/
+/*부서 테이블 --- 형준*/	/*부서*/
+INSERT INTO DEPT VALUES (10,'개발팀',null);
+INSERT INTO DEPT VALUES (20,'디자인팀',null);
+INSERT INTO DEPT VALUES (30,'재무관리팀',null);
+INSERT INTO DEPT VALUES (40,'리스크관리팀',null);
+INSERT INTO DEPT VALUES (50,'인사팀',null);
+
+/*2020-05-11*/
+/*직급 테이블 --- 형준*//*직급*/
+INSERT INTO EMPRANK VALUES (1,'사원',null);
+INSERT INTO EMPRANK VALUES (2,'대리',null);
+INSERT INTO EMPRANK VALUES (3,'과장',null);
+INSERT INTO EMPRANK VALUES (4,'차장',null);
+INSERT INTO EMPRANK VALUES (5,'부장',null);
+INSERT INTO EMPRANK VALUES (6,'대표이사',null);
+
+/*2020-05-11*/
+/*권한 테이블 --- 형준*/	/*권한*/
+INSERT INTO AUTHOR VALUES (1,'NORMAL','프로젝트 참여멤버'); -- 로그인 시 개인 대시보드(작업관리메뉴)
+INSERT INTO AUTHOR VALUES (2,'PM','프로젝트 관리자'); -- 로그인 시 프로젝트관리페이지
+INSERT INTO AUTHOR VALUES (3,'ADMIN','PMS시스템 관리자'); -- 로그인 시 사원관리페이지
+INSERT INTO AUTHOR VALUES (4, 'CEO', '전체 프로젝트 조회권한'); -- 로그인 시 종합대시보드 페이지
+
+/*2020-05-11*/
+/*사원테이블 --- 형준&현주*/	/*사원*/
+INSERT INTO EMP VALUES ('ceo',null,6,4,'123456a!','박대표','master@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ('admin',50,3,3,'123456a!','박관리','new1234@ps.com',sysdate,'');
+
+/* 2020-05-11 이윤배 프로젝트 정보*/
+
+/* 2020-05-11 프로젝트 분류*/
+INSERT INTO KIND VALUES(1,'웹 개발','웹페이지 개발');
+INSERT INTO KIND VALUES(2,'앱 개발','어플리케이션 개발');
+INSERT INTO KIND VALUES(3,'웹/앱 개발','웹페이지&어플리케이션 개발');
+INSERT INTO KIND VALUES(4,'시스템 개발','시스템 개발');
+INSERT INTO KIND VALUES(5,'프로그래밍','프로그램 개발');
+
+/* 2020-05-11 프로젝트 예시회원*/
+INSERT INTO EMP VALUES (2019||10||lpad(emp_sequence.nextval,3,0),10,3,2,'123456a!','이윤배','whale912@naver.com',to_date('2019-12-18'),'');
+INSERT INTO EMP VALUES (2019||10||lpad(emp_sequence.nextval,3,0),10,2,1,'123456a!','임성빈','twins1234@ps.com',to_date('2019-12-18'),'');
+INSERT INTO EMP VALUES (2019||10||lpad(emp_sequence.nextval,3,0),10,2,1,'123456a!','임진혁','sooho1234@ps.com',to_date('2019-12-18'),'');
+INSERT INTO EMP VALUES (2019||10||lpad(emp_sequence.nextval,3,0),10,2,1,'123456a!','박현주','louna1234@ps.com',to_date('2019-12-18'),'');
+INSERT INTO EMP VALUES (2019||10||lpad(emp_sequence.nextval,3,0),10,2,1,'123456a!','박형준','junny1234@ps.com',to_date('2019-12-18'),'');
+
+/* 2020-05-11 프로젝트 데이터 */
+/* 2020-05-18 Progress 진행률 부분 0.0~1.0단위로 변경 */
+/* 2020-05-21 프로젝트 상태 회의내용 반영 변경 '진행 중'->'진행'  */
+INSERT INTO PROJECT VALUES(project_seq.nextval,4,'자바버거 배달 시스템 개발','201910001',5,1000000,to_date('2020-01-13'),to_date('2020-01-31'),1,'gantt.config.types.project',1,'종료');
+INSERT INTO PROJECT VALUES(project_seq.nextval,3,'서울愛가면 웹페이지 개발','201910001',5,3000000,to_date('2020-02-01'),to_date('2020-02-28'),1,'gantt.config.types.project',1,'종료');
+INSERT INTO PROJECT VALUES(project_seq.nextval,3,'고래월드 웹/앱 사이트 개발','201910001',5,2000000,to_date('2020-03-01'),to_date('2020-03-27'),1,'gantt.config.types.project',1,'종료');
+INSERT INTO PROJECT VALUES(project_seq.nextval,3,'재능마켓 D.Y.L 웹/앱 사이트 개발','201910001',5,2000000,to_date('2020-03-28'),to_date('2020-04-24'),1,'gantt.config.types.project',1,'종료');
+INSERT INTO PROJECT VALUES(project_seq.nextval,3,'웹툰 플랫폼 벗꽃툰 웹/앱 사이트 개발','201910001',5,6000000,to_date('2020-04-25'),to_date('2020-05-01'),1,'gantt.config.types.project',1,'종료');
+INSERT INTO PROJECT VALUES(project_seq.nextval,4,'PMS시스템 PerfectSolution 개발','201910001',5,10000000,to_date('2020-05-02'),to_date('2020-06-08'),0.5,'gantt.config.types.project',1,'진행');
+
+/* 2020-05-13 역할 테이블 추가  */
+INSERT INTO ROLE VALUES(1,'PM','프로젝트 관리자');
+INSERT INTO ROLE VALUES(2,'프론트엔드','프론트엔드 개발자');
+INSERT INTO ROLE VALUES(3,'백엔드','백엔드 개발자');
+INSERT INTO ROLE VALUES(4,'디자이너','웹&앱 디자이너');
+
+
+
+/* 2020-05-11 프로젝트 멤버 데이터 */
+/* 2020-05-18 간트차트를 위해 멤버테이블에 배경색, 글자색 컬럼데이터 추가 */
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910001,1,to_date('2020-01-13'),1,'#b8daff','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910002,1,to_date('2020-01-13'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910003,1,to_date('2020-01-13'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910004,1,to_date('2020-01-13'),2,'#ffc107','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910005,1,to_date('2020-01-13'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910001,2,to_date('2020-02-01'),1,'#b8daff','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910002,2,to_date('2020-02-01'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910003,2,to_date('2020-02-01'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910004,2,to_date('2020-02-01'),2,'#ffc107','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910005,2,to_date('2020-02-01'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910001,3,to_date('2020-03-01'),1,'#b8daff','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910002,3,to_date('2020-03-01'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910003,3,to_date('2020-03-01'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910004,3,to_date('2020-03-01'),2,'#ffc107','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910005,3,to_date('2020-03-01'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910001,4,to_date('2020-03-28'),1,'#b8daff','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910002,4,to_date('2020-03-28'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910003,4,to_date('2020-03-28'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910004,4,to_date('2020-03-28'),2,'#ffc107','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910005,4,to_date('2020-03-28'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910001,5,to_date('2020-04-25'),1,'#b8daff','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910002,5,to_date('2020-04-25'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910003,5,to_date('2020-04-25'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910004,5,to_date('2020-04-25'),2,'#ffc107','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910005,5,to_date('2020-04-25'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910001,6,to_date('2020-05-02'),1,'#b8daff','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910002,6,to_date('2020-05-02'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910003,6,to_date('2020-05-02'),3,'#c3e6cb','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910004,6,to_date('2020-05-02'),2,'#ffc107','#FFF');
+INSERT INTO MEMBER (EMPNO, PROJECTNO, REGDATE, ROLENO, BACKGROUNDCOLOR, TEXTCOLOR) VALUES(201910005,6,to_date('2020-05-02'),3,'#c3e6cb','#FFF');
+
+/* 2020-05-11 사원테이블 데이터*/
+/* 2020-05-18 위의 프로젝트 예시를 위한 사원정보(우리조) 중복 제거 */
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||40||lpad(emp_sequence.nextval,3,0)),40,5,1,'123456a!','김사부','dr1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||30||lpad(emp_sequence.nextval,3,0)),30,5,1,'123456a!','사계절','season1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||20||lpad(emp_sequence.nextval,3,0)),20,4,1,'123456a!','조수석','design1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||10||lpad(emp_sequence.nextval,3,0)),10,3,2,'123456a!','김새로이','park1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||20||lpad(emp_sequence.nextval,3,0)),20,1,1,'123456a!','정앙드','0001234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||10||lpad(emp_sequence.nextval,3,0)),10,1,1,'123456a!','임길동','lim1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||40||lpad(emp_sequence.nextval,3,0)),40,1,1,'123456a!','김베이스','base1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||20||lpad(emp_sequence.nextval,3,0)),20,1,1,'123456a!','한차트','chart1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||30||lpad(emp_sequence.nextval,3,0)),30,1,1,'123456a!','김겨울','winter1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||20||lpad(emp_sequence.nextval,3,0)),20,1,1,'123456a!','김그림','art1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||50||lpad(emp_sequence.nextval,3,0)),50,1,1,'123456a!','김하이걸','higirl1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||40||lpad(emp_sequence.nextval,3,0)),40,1,1,'123456a!','김스크립','script1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||30||lpad(emp_sequence.nextval,3,0)),30,1,1,'123456a!','김봄','spring1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||50||lpad(emp_sequence.nextval,3,0)),50,1,1,'123456a!','김헬로','hello1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||40||lpad(emp_sequence.nextval,3,0)),40,1,1,'123456a!','김데타','data1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||40||lpad(emp_sequence.nextval,3,0)),40,1,1,'123456a!','김뷰','vue1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||30||lpad(emp_sequence.nextval,3,0)),30,1,1,'123456a!','김여름','summer1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||40||lpad(emp_sequence.nextval,3,0)),40,1,1,'123456a!','김자바','java1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||50||lpad(emp_sequence.nextval,3,0)),50,1,1,'123456a!','최인사','insa1234@ps.com',sysdate,'');
+INSERT INTO EMP VALUES ((to_char(sysdate,'YYYY')||30||lpad(emp_sequence.nextval,3,0)),30,1,1,'123456a!','김가을','maple1234@ps.com',sysdate,'');
+
+/* 2020-05-15 임진혁 프로젝트게시판 데이터추가*/
+
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,1,0,'201910002','프로젝트 방안','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,1,0,'201910003','프로젝트 계획','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,1,0,'201910004','프로젝트 공지','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,1,0,'201910004','프로젝트 역할분담','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,1,0,'201910005','프로젝트 변경내용','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,1,0,'201910005','프로젝트 변경사항','내용입니다',sysdate,sysdate,0,'N');
+
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,2,0,'201910002','프로젝트 방안','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,2,0,'201910003','프로젝트 계획','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,2,0,'201910004','프로젝트 공지','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,2,0,'201910005','프로젝트 역할분담','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,2,0,'201910005','프로젝트 변경내용','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,2,0,'201910004','프로젝트 변경사항','내용입니다',sysdate,sysdate,0,'N');
+
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,3,0,'201910002','프로젝트 방안','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,3,0,'201910003','프로젝트 계획','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,3,0,'201910004','프로젝트 공지','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,3,0,'201910005','프로젝트 역할분담','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,3,0,'201910004','프로젝트 변경내용','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,3,0,'201910005','프로젝트 변경사항','내용입니다',sysdate,sysdate,0,'N');
+
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,4,0,'201910002','프로젝트 방안','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,4,0,'201910003','프로젝트 계획','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,4,0,'201910004','프로젝트 공지','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,4,0,'201910005','프로젝트 역할분담','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,4,0,'201910004','프로젝트 변경내용','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,4,0,'201910002','프로젝트 변경사항','내용입니다',sysdate,sysdate,0,'N');
+
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,5,0,'201910002','프로젝트 방안','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,5,0,'201910003','프로젝트 계획','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,5,0,'201910004','프로젝트 공지','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,5,0,'201910003','프로젝트 역할분담','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,5,0,'201910002','프로젝트 변경내용','내용입니다',sysdate,sysdate,0,'N');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,5,0,'201910001','프로젝트 변경사항','내용입니다',sysdate,sysdate,0,'N');
+
+-- 2020-05-21 예시데이터를 위해서 모두 공지글로 변경 --
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,6,0,'201910002','프로젝트 방안','내용입니다',sysdate,sysdate,0,'Y');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,6,0,'201910003','프로젝트 계획','내용입니다',sysdate,sysdate,0,'Y');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,6,0,'201910004','프로젝트 공지','내용입니다',sysdate,sysdate,0,'Y');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,6,0,'201910003','프로젝트 역할분담','내용입니다',sysdate,sysdate,0,'Y');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,6,0,'201910002','프로젝트 변경내용','내용입니다',sysdate,sysdate,0,'Y');
+INSERT INTO pjboard VALUES (pjboard_seq.nextval,6,0,'201910001','프로젝트 변경사항','내용입니다',sysdate,sysdate,0,'Y');
+
+---------------------------------------------------------------------------------------------------------------------------
+
+
+-- 20-05-16 Task 예시데이터
+-- 2020-05-21 작업 상태 회의내용 반영 (공백제거)
+INSERT INTO TASK VALUES(1||lpad(task_seq.nextval,4,0),1,0,'요구사항정의서 작성','201910002',
+'클라이언트와 요구사항을 고려해 요구사항정의서 작성',
+to_date('2020-01-14','YYYY-MM-DD'),
+to_date('2020-01-14','YYYY-MM-DD'),
+to_date('2020-01-16','YYYY-MM-DD'),
+to_date('2020-01-14','YYYY-MM-DD'),
+to_date('2020-01-15','YYYY-MM-DD'),
+1,to_date('2020-01-15','YYYY-MM-DD'),
+to_date('2020-01-16','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+
+INSERT INTO TASK VALUES(1||lpad(task_seq.nextval,4,0),1,10001,'클라이언트 면담','201910002',
+'클라이언트와 요구사항을 고려해 요구사항정의서 작성',
+to_date('2020-01-14','YYYY-MM-DD'),
+to_date('2020-01-14','YYYY-MM-DD'),
+to_date('2020-01-15','YYYY-MM-DD'),
+to_date('2020-01-14','YYYY-MM-DD'),
+to_date('2020-01-15','YYYY-MM-DD'),
+1,to_date('2020-01-15','YYYY-MM-DD'),
+to_date('2020-01-15','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+
+INSERT INTO TASK VALUES(1||lpad(task_seq.nextval,4,0),1,10001,'요구사항정의서 작성','201910002',
+'클라이언트와 요구사항을 고려해 요구사항정의서 작성',
+to_date('2020-01-14','YYYY-MM-DD'),
+to_date('2020-01-15','YYYY-MM-DD'),
+to_date('2020-01-15','YYYY-MM-DD'),
+to_date('2020-01-15','YYYY-MM-DD'),
+to_date('2020-01-15','YYYY-MM-DD'),
+1,to_date('2020-01-15','YYYY-MM-DD'),
+to_date('2020-01-15','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+
+
+-- 0520 임성빈 조치코드 데이터 , 이슈/조치 데이터
+INSERT INTO measurecode VALUES (1,1,'회피'); 
+INSERT INTO measurecode VALUES (2,1,'전가'); 
+INSERT INTO measurecode VALUES (3,1,'완화'); 
+INSERT INTO measurecode VALUES (4,1,'수용'); 
+INSERT INTO measurecode VALUES (5,2,'활용'); 
+INSERT INTO measurecode VALUES (6,2,'공유'); 
+INSERT INTO measurecode VALUES (7,2,'증대'); 
+INSERT INTO measurecode VALUES (8,2,'수용'); 
+
+INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state) VALUES (issue_seq.nextval,1,10002,'201910002',sysdate,
+'클라이언트 미팅 일자 변동','클라이언트가 미팅일자를 2주뒤로 연기하길 바람','조치대기');
+INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state) VALUES (issue_seq.nextval,1,10003,'201910002',sysdate,
+'요구사항정의서 관련','클라이언트 측이 요구사항정의서 전면수정 요구 함','조치대기');
+
+INSERT INTO measure VALUES (measure_seq.nextval,1,'201910001',sysdate,sysdate,'미팅 일자 변동 확인','2주 뒤 연기 확인');
+INSERT INTO measure VALUES (measure_seq.nextval,2,'201910001',sysdate,sysdate,'조치완료','전면 수정 불가 통보
+관리자 페이지만 재작성 하기로 합의함');
+UPDATE issue SET state='조치완료', codeno=4 WHERE issueno=1;
+UPDATE issue SET state='조치완료', codeno=3 WHERE issueno=2;
+
+-- 2020-05-21 이윤배 작업 예시데이터 추가 -------------
+
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,0,'요구사항정의서 작성','201910001',
+'클라이언트와 요구사항을 고려해 요구사항정의서 작성',
+to_date('2020-05-02','YYYY-MM-DD'),
+to_date('2020-05-02','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-02','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+1,to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,0,'화면설계 ','201910001',
+'구현할 화면을 설계',
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+1,to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60005,'화면설계(로그인/회원가입) ','201910005',
+'로그인/회원가입페이지 화면 설계',
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+1,to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60005,'화면설계(프로젝트/작업) ','201910001',
+'프로젝트/작업페이지 화면 설계',
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+1,to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60005,'화면설계(대시보드/리스크관리) ','201910002',
+'대시보드/리스크관리 화면 설계',
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+1,to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60005,'화면설계(커뮤니케이션) ','201910003',
+'커뮤니케이션페이지 화면 설계',
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+1,to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60005,'화면설계(사원관리) ','201910004',
+'사원관리페이지 화면 설계',
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-04','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+1,to_date('2020-05-07','YYYY-MM-DD'),
+to_date('2020-05-07','YYYY-MM-DD'),
+'','',1,1,'승인완료');
+
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,0,'화면구현 ','201910001',
+'설계한 화면을 구현',
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+1,null,null,
+'','',1,1,'배정완료');
+
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60011,'화면구현(로그인/회원가입) ','201910005',
+'로그인/회원가입페이지 화면 구현',
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+0,null,null,
+'','',1,1,'배정완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60011,'화면구현(프로젝트/작업) ','201910001',
+'프로젝트/작업페이지 화면 구현',
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+0,null,null,
+'','',1,1,'배정완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60011,'화면구현(대시보드/리스크관리) ','201910002',
+'대시보드/리스크관리 화면 구현',
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+0,null,null,
+'','',1,1,'배정완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60011,'화면구현(커뮤니케이션) ','201910003',
+'커뮤니케이션페이지 화면 구현',
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+0,null,null,
+'','',1,1,'배정완료');
+INSERT INTO TASK VALUES(6||lpad(task_seq.nextval,4,0),6,60011,'화면구현(사원관리) ','201910004',
+'사원관리페이지 화면 구현',
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+to_date('2020-05-08','YYYY-MM-DD'),
+to_date('2020-05-29','YYYY-MM-DD'),
+0,null,null,
+'','',1,1,'배정완료');
+
+-- 
+
+-- 0521 이슈/조치 데이터 
+INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state,codeno) VALUES (issue_seq.nextval,6,60008,'201910002',sysdate,
+'대시보드 설계 내용 일부 변경','새로 작업함','조치완료',4);
+INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state,codeno) VALUES (issue_seq.nextval,6,60006,'201910005',sysdate,
+'로그인 페이지 설계 변동사항','기존 템플릿 일부 변경해서 적용할 예정입니다 ','조치완료',7);
+INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state) VALUES (issue_seq.nextval,6,60014,'201910002',sysdate,
+'리스크관리 조치코드 새로 추가적용','위험/기회로 분류해서 조치에 따른 코드 새로 적용','조치대기');
+INSERT INTO measure VALUES (measure_seq.nextval,3,'201910001',sysdate,sysdate,'설계변동 확인','수용');
+INSERT INTO measure VALUES (measure_seq.nextval,4,'201910001',sysdate,sysdate,'템플릿 변경 적용확인','추후에도 변경된 템플릿 그대로 적용해서 작업');
+
+UPDATE issue SET state='조치완료',codeno=5 WHERE issueno=5;
+INSERT INTO measure VALUES (measure_seq.nextval,5,'201910001',sysdate,sysdate,'조치완료','위험은 분류1
+기회는 분류2로 코드적용');
+INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state) VALUES (issue_seq.nextval,6,60014,'201910002',sysdate,
+'대시보드 구현 작업 지연','기존 템플릿에 없는 차트 새로 적용위해 작업 다소 지연됨','조치대기');
+
+
+INSERT INTO measure VALUES (measure_seq.nextval,6,'201910001',sysdate,sysdate,'확인','2주 뒤 연기 확인');
+UPDATE issue SET state='조치완료',codeno=8 WHERE issueno=6;
+INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state,codeno) VALUES (issue_seq.nextval,6,60012,'201910005',sysdate,
+'새로운 내용 적용','클라이언트가 미팅일자를 2주뒤로 연기하길 바람','조치완료',8);
+INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state,codeno) VALUES (issue_seq.nextval,6,60015,'201910003',sysdate,
+'커뮤니케이션 게시판 분리','클라이언트 측이 전면수정 요구 함','조치대기',7);
+INSERT INTO measure VALUES (measure_seq.nextval,7,'201910001',sysdate,sysdate,'확인','2주 뒤 연기 확인');
+INSERT INTO measure VALUES (measure_seq.nextval,8,'201910001',sysdate,sysdate,'조치완료','전면 수정 불가 통보
+관리자 페이지만 재작성 하기로 합의함');
+UPDATE issue SET state='조치완료',codeno=7 WHERE issueno=8;
+
+INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state) VALUES (issue_seq.nextval,6,60014,'201910002',sysdate,
+'리스크 관리 이슈','추가페이지 작업 시 대시보드와 기능 연계가 안 됨','조치대기');
+
+
+

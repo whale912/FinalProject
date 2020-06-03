@@ -1,0 +1,172 @@
+package project06.mvc.service;
+
+import java.util.ArrayList;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import project06.mvc.repository.YunbaeRep;
+import project06.mvc.vo.Board;
+import project06.mvc.vo.Emp;
+import project06.mvc.vo.Gantt;
+import project06.mvc.vo.GanttMember;
+import project06.mvc.vo.Kind;
+import project06.mvc.vo.Member;
+import project06.mvc.vo.Project;
+import project06.mvc.vo.ProjectJson;
+import project06.mvc.vo.ProjectJson2;
+import project06.mvc.vo.Role;
+import project06.mvc.vo.Task;
+
+@Service
+public class YunbaeService {
+	@Autowired(required=false)
+	private YunbaeRep rep;
+	public ArrayList<Project> getProjectList(Project sch){
+		// 데이터 총 건수
+		sch.setCount(rep.totCnt());
+		// 기본 페이지당 건수
+		sch.setPageSize(10);
+		// 총페이지
+		sch.setPageCount((int)(Math.ceil(sch.getCount()/(double)sch.getPageSize())));
+		// 현재페이지
+		if(sch.getCurPage()==0) {
+			sch.setCurPage(1);
+		}
+		sch.setStart((sch.getCurPage()-1)*sch.getPageSize()+1);
+		sch.setEnd(sch.getCurPage()*sch.getPageSize());
+		sch.setBlockSize(5);
+		int blocknum = (int)Math.ceil(sch.getCurPage()/(double)sch.getBlockSize());
+		int endBlock = blocknum*sch.getBlockSize();
+		sch.setEndBlock(endBlock>sch.getPageCount()?sch.getPageCount():endBlock);
+		sch.setStartBlock((blocknum-1)*sch.getBlockSize()+1);
+		
+		return rep.getProjectList(sch);
+	}
+	public ArrayList<Kind> getKindList(){
+		return rep.getKindList();
+	}
+	public void insertProject(Project ins) {
+		System.out.println(ins.getPname());
+		System.out.println(ins.getKindno());
+		System.out.println(ins.getPersonnel());
+		rep.insertProject(ins);
+	}
+	public Project getDetail(int projectno) {
+		return rep.getDetail(projectno);
+	}
+	public ProjectJson2 getDetail2(int projectno) {
+		return rep.getDetail2(projectno);
+	}
+	
+	public ArrayList<Member> getMemList(Member mem){
+		// 데이터 총 건수
+		mem.setCount(rep.totMem(mem));
+		// 기본 페이지당 건수
+		mem.setPageSize(5);
+		// 총페이지
+		mem.setPageCount((int)(Math.ceil(mem.getCount()/(double)mem.getPageSize())));
+		// 현재페이지
+		if(mem.getCurPage()==0) {
+			mem.setCurPage(1);
+			System.out.println(mem.getCurPage());
+		}
+		mem.setStart((mem.getCurPage()-1)*mem.getPageSize()+1);
+		mem.setEnd(mem.getCurPage()*mem.getPageSize());
+		return rep.getMemList(mem);
+	}
+	public ArrayList<Member> getMemList2(int projectno){
+		return rep.getMemList2(projectno);
+	}
+	
+	public void updateProject(Project upt) {
+		rep.updateProject(upt);
+	}
+	public ArrayList<ProjectJson> getJosnList(){
+		return rep.getJosnList();
+	}
+	
+	// 간트차트 데이터(프로젝트페이지)
+	public ArrayList<Gantt> gantList(int projectno){
+		return rep.gantList(projectno);
+	}
+	public ArrayList<Gantt> gantPTaskList(int projectno){
+		return rep.gantPTaskList(projectno);
+	}
+	public ArrayList<Gantt> gantCTaskList(int projectno){
+		return rep.gantCTaskList(projectno);
+	}
+	// 간트차트 데이터(작업페이지)
+	public ArrayList<Gantt> myProjectList(String empno){
+		return rep.myProjectList(empno);
+	}
+	public ArrayList<Gantt> myPTaskList(String empno){
+		return rep.myPTaskList(empno);
+	}
+	public ArrayList<Gantt> myCTaskList(String empno){
+		return rep.myCTaskList(empno);
+	}
+	
+	
+	public ArrayList<GanttMember> ganttMemList(int projectno){
+		return rep.ganttMemList(projectno);
+	}
+	public ArrayList<Task> getTaskList(int projectno){
+		return rep.getTaskList(projectno);
+	}
+	public void insertTask(Task ins) {
+		rep.insertTask(ins);
+	}
+	public Task getTask(int taskno) {
+		return rep.getTask(taskno);
+	}
+	public void updateTask(Task upt) {
+		System.out.println(upt.getTaskno());
+		System.out.println(upt.getAssigndate());
+		System.out.println(upt.getP_startdate());
+		System.out.println(upt.getP_enddate());
+		System.out.println(upt.getContent());
+		System.out.println(upt.getEmpno());
+		System.out.println(upt.getState());
+		rep.updateTask(upt);
+	}
+	public ArrayList<Emp> getJoinableEmp(){
+		return rep.getJoinableEmp();
+	}
+	public ArrayList<Member> getMemberInfo(int projectno){
+		return rep.getMemberInfo(projectno);
+	}
+	public ArrayList<Role> getRoleList(){
+		return rep.getRoleList();
+	}
+	public void insertMember(Member ins) {
+		rep.insertMember(ins);
+	}
+	public void deleteMember(Member del) {
+		rep.deleteMember(del);
+	}
+	// 내가 참여중인 프로젝트 상세내용
+	public Project getMyDetail(String empno) {
+		return rep.getMyDetail(empno);
+	}
+	// 내게 배정된 작업
+	public int getMyTaskCount(String empno) {
+		return rep.getMyTaskCount(empno);
+	}
+	// 승인 완료된 작업
+	public int getConfirmedCount(String empno) {
+		return rep.getConfirmedCount(empno);
+	}
+	// 지연된 작업
+	public int getDelayedCount(String empno) {
+		return rep.getDelayedCount(empno);
+	}
+	// 조치완료된 이슈
+	public int getMeasuredCount(String empno) {
+		return rep.getMeasuredCount(empno);
+	}
+	public ArrayList<Board> getMyProjectBoard(String empno){
+		return rep.getMyProjectBoard(empno);
+	}
+	
+}

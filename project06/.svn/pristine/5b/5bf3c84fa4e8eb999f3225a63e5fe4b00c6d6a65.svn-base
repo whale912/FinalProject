@@ -1,0 +1,157 @@
+package project06.mvc.repository;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.springframework.stereotype.Repository;
+
+import project06.mvc.vo.Board;
+import project06.mvc.vo.Dept;
+import project06.mvc.vo.Emp;
+import project06.mvc.vo.Gantt;
+import project06.mvc.vo.GanttMember;
+import project06.mvc.vo.Kind;
+import project06.mvc.vo.Member;
+import project06.mvc.vo.Project;
+import project06.mvc.vo.ProjectIssue;
+import project06.mvc.vo.ProjectJson;
+import project06.mvc.vo.ProjectJson2;
+import project06.mvc.vo.Role;
+import project06.mvc.vo.Schedule;
+import project06.mvc.vo.Task;
+import project06.mvc.vo.TaskDivision;
+
+@Repository
+public interface YunbaeRep {
+	// 프로젝트 리스트 호출
+	public ArrayList<Project> getProjectList(Project sch);
+	// 프로젝트 전체 개수(페이징처리)
+	public int totCnt();
+	// 프로젝트 분류 리스트 호출
+	public ArrayList<Kind> getKindList();
+	// 프로젝트 생성
+	public void insertProject(Project ins);
+	// 프로젝트 상세정보
+	public Project getDetail(int projectno);
+	// 프로젝트 상세정보 Json(for 안드로이드)
+	public ProjectJson2 getDetail2(int projectno);
+	// 프로젝트 멤버 리스트 호출
+	public ArrayList<Member> getMemList(Member mem);
+	public ArrayList<Member> getMemList2(int projectno);
+	public int totMem(Member mem);	
+	// 프로젝트 수정
+	public void updateProject(Project upt);
+	// 프로젝트 리스트 Json데이터
+	public ArrayList<ProjectJson> getJosnList();
+	// 간트차트용 프로젝트 불러오기
+	public ArrayList<Gantt> gantList(int projectno);
+	// 간트차트용 상위작업 불러오기
+	public ArrayList<Gantt> gantPTaskList(int projectno);
+	// 간트차트용 하위작업 불러오기
+	public ArrayList<Gantt> gantCTaskList(int projectno);
+	// 간트차트용 멤버리스트 불러오기
+	public ArrayList<GanttMember> ganttMemList(int projectno);
+	// 간트차트용 상위작업목록 불러오기
+	public ArrayList<Task> getTaskList(int projectno);
+	// 작업생성
+	public void insertTask(Task ins);
+	// 작업 상세정보 불러오기(간트차트)
+	public Task getTask(int taskno);
+	// 작업 수정
+	public void updateTask(Task upt);
+	public ArrayList<Emp> getJoinableEmp(Emp sch);
+	public ArrayList<Member> getMemberInfo(int projectno);
+	public ArrayList<Role> getRoleList();
+	public void insertMember(Member ins);
+	public void deleteMember(Member del);
+	// 간트차트용 프로젝트 불러오기
+	public ArrayList<Gantt> myProjectList(String empno);
+	// 간트차트용 상위작업 불러오기
+	public ArrayList<Gantt> myPTaskList(String empno);
+	// 간트차트용 하위작업 불러오기
+	public ArrayList<Gantt> myCTaskList(String empno);
+	
+	// 참여중프로젝트 상세정보
+	public Project getMyDetail(String empno);
+	// 내게 배정된 작업
+	public int getMyTaskCount(String empno);
+	// 승인완료된 작업
+	public int getConfirmedCount(String empno);
+	// 지연된 작업
+	public int getDelayedCount(String empno);
+	// 조치완료된 이슈
+	public int getMeasuredCount(String empno);
+	// 참여 프로젝트 게시판 공지
+	public ArrayList<Board> getMyProjectBoard(String empno);
+	// 부서정보 불러오기
+	public ArrayList<Dept> getDeptInfo();
+	// 진행 중 작업
+	public int getGoingCount(String empno);
+	// 승인대기
+	public int getWaitCount(String empno);
+	// 반려
+	public int getRejectCount(String empno);
+	// 작업관리 목록
+	public ArrayList<Task> getTaskManageList(String empno);
+	// 작업 상세
+	public Task getTaskDetail(Task task);
+	// 분할작업 등록
+	public void taskDivInsert(TaskDivision task);
+	// 분할작업 불러오기
+	public ArrayList<TaskDivision> getDivList(Task task);
+	// 분할작업 수정
+	public void taskDivUpdate(TaskDivision task);
+	// 분할작업 삭제
+	public void taskDivDelete(TaskDivision task);
+	// 분할작업 업로드(진행률 업데이트)
+	public void taskDivProgressUpdate(TaskDivision task);
+	// 분할 진행률
+	public TaskDivision taskDivProgressCount(Task task);
+	
+	// 작업 승인 신청
+	public void taskConfirm(Task task);
+	
+	// 승인요청 목록 불러오기
+	public ArrayList<Task> getReqConfirmList(String empno);
+	// 요청 승인 처리
+	public void confirmTask(Task task);
+	public void confirmTask2(Task task);
+	// 요청 반려처리
+	public void rejectTask(Task task);
+	
+	
+	// 파일 정보 등록
+	public void insertRepo(TaskDivision task);
+	// 파일 정보 수정
+	public void uptFileInfo(HashMap hm);
+	
+	/* 해당 상위업무 평균 진행률 확인 */
+	// 상위업무 존재 확인
+	public int searchRef(int taskno);
+	// 해당업무의 상위업무 확인
+	public int searchRefTask(int taskno);
+	// 상위업무의 하위업무 평균 진행률 확인
+	public double avgChildTaskPro(int taskno);
+	
+	
+	// 결과파일 정보 등록
+	public void insertResultRepo(Task task);
+	public void uptResultRepo(HashMap hm);
+	// 프로젝트 결과 파일 리스트
+	public ArrayList<Task> taskResultList(int projectno);
+	
+	// 스케쥴러 데이터
+	public ArrayList<Schedule> getScheduleList(String empno);
+	// 스케쥴 테이블 인서트
+	public void insertSche(Schedule sche);
+	// 스케쥴 테이블 업데이트
+	public void updateSche(Schedule sche);
+	// 스케쥴 테이블 삭제
+	public void deleteSche(int id);
+	
+	// 일주일 스케줄 불러오기
+	public ArrayList<Schedule> getThisWeekSche(String empno);
+	
+	// 프로젝트 이슈현황
+	public ProjectIssue projectIssueStatus(int projectno);
+}

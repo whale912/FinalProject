@@ -1,0 +1,23 @@
+package project06.mvc.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import project06.mvc.service.HyeonjuService;
+
+@Controller
+
+@RequestMapping("/profile.do")
+public class profileCtrl {
+	
+	@Autowired(required=false)
+	private HyeonjuService service;
+	
+	// http://localhost:5080/project06/profile.do?method=base
+	@RequestMapping(params="method=base")
+	public String base() {
+		return "WEB-INF\\views\\hyeonju\\member_profile.jsp";
+	}
+
+}

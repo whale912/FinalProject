@@ -1,0 +1,449 @@
+package project06.mvc.service;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import project06.mvc.repository.SungbinDao;
+import project06.mvc.repository.YunbaeRep;
+import project06.mvc.vo.Gantt;
+import project06.mvc.vo.Issue;
+import project06.mvc.vo.Issue2;
+import project06.mvc.vo.IssueSch;
+import project06.mvc.vo.Member;
+import project06.mvc.vo.Project;
+import project06.mvc.vo.ProjectSch;
+import project06.mvc.vo.Role;
+import project06.mvc.vo.Task;
+
+@Service
+public class SungbinService {
+	@Autowired(required=false)
+	private SungbinDao dao;
+	private YunbaeRep rep;
+
+	public ArrayList<Gantt> gantList(){
+		return dao.gantList();
+	}
+	public ProjectSch totPieList(){
+		return dao.totPieList();
+	}
+	public ArrayList<ProjectSch> totPieList2(){
+		return dao.totPieList2();
+	}
+	public ProjectSch maxYear(){
+		return dao.maxYear();
+	}
+	public ArrayList<ProjectSch> totYearList(){
+		return dao.totYearList();
+	}
+	public ArrayList<ProjectSch> totYearListJson(){
+		return dao.totYearListJson();
+	}
+	public Issue totPieIssue() {
+		return dao.totPieIssue();
+	}
+	
+	public ArrayList<ProjectSch> prolist(ProjectSch sch){
+		sch.setCount(dao.totCnt2(sch));
+		
+		if(sch.getPageSize()==0) {
+			sch.setPageSize(5);
+		}
+		
+		sch.setPageCount((int)(Math.ceil(sch.getCount()/(double)sch.getPageSize())));
+		
+		if(sch.getCurPage()==0) {
+			sch.setCurPage(1);
+		}
+		
+		sch.setStart( (sch.getCurPage()-1)*sch.getPageSize()+1 );
+		sch.setEnd( sch.getCurPage()*sch.getPageSize() );
+		
+		
+		sch.setBlockSize(5);
+		
+		int blocknum = (int)Math.ceil(sch.getCurPage()/(double)sch.getBlockSize());
+
+		int endBlock = blocknum*sch.getBlockSize();
+		sch.setEndBlock(endBlock>sch.getPageCount()?sch.getPageCount():endBlock);
+		
+		sch.setStartBlock((blocknum-1)*sch.getBlockSize()+1);
+		
+		return dao.prolist(sch);
+	}
+	public ArrayList<Project> prolist2(int projectno){
+		return dao.prolist2(projectno);
+	}
+	public Project latestprojectno() {
+		return dao.latestprojectno();
+	}
+	
+	
+	public ArrayList<Issue> list(IssueSch sch){
+		
+		sch.setCount(dao.totCnt(sch));
+		
+		if(sch.getPageSize()==0) {
+			sch.setPageSize(10);
+		}
+		
+		sch.setPageCount((int)(Math.ceil(sch.getCount()/(double)sch.getPageSize())));
+		
+		if(sch.getCurPage()==0) {
+			sch.setCurPage(1);
+		}
+		
+		sch.setStart( (sch.getCurPage()-1)*sch.getPageSize()+1 );
+		sch.setEnd( sch.getCurPage()*sch.getPageSize() );
+		
+		
+		sch.setBlocksize(5);
+		
+		int blocknum = (int)Math.ceil(sch.getCurPage()/(double)sch.getBlocksize());
+
+		int endBlock = blocknum*sch.getBlocksize();
+		sch.setEndBlock(endBlock>sch.getPageCount()?sch.getPageCount():endBlock);
+		
+		sch.setStartBlock((blocknum-1)*sch.getBlocksize()+1);
+		System.out.println("블럭번호"+blocknum);
+		System.out.println("시작 block번호:"+sch.getStartBlock());
+		System.out.println("마지막 block번호:"+sch.getEndBlock());
+		System.out.println("getstart"+sch.getStart());
+		System.out.println("getend"+sch.getEnd());
+		
+		return dao.list(sch);
+	}
+	public ArrayList<Project> plist(IssueSch sch){
+		return dao.plist(sch); 
+	}
+	public Issue plist0(IssueSch sch){
+		return dao.plist0(sch); 
+	}
+	public ArrayList<Project> plist3(){
+		return dao.plist3(); 
+	}
+	public ArrayList<Project> plist2(IssueSch sch){
+		return dao.plist2(sch); 
+	}
+	
+	public ArrayList<Issue> codeList(){
+		return dao.codeList();
+	}
+	public ArrayList<Issue> codeList2(){
+		return dao.codeList2();
+	}
+	public ArrayList<Issue> codeList3(int codediv){
+		return dao.codeList3(codediv);
+	}
+	
+	public ArrayList<Issue> tlist(IssueSch sch){
+		return dao.tlist(sch);
+	} 
+	public Issue getproject(IssueSch sch) {
+		return dao.getproject(sch);
+	}
+	public Issue getIssue(int no) {
+		Issue d = dao.getIssue(no); 
+		d.setFilenames(dao.fnames(no));
+		return d;
+		
+	}
+	public Issue getIssue2(int no,int no2) {
+		Issue d = dao.getIssue(no);
+		d.setFilenames(dao.fnames(no));
+		d.setFilenames2(dao.fnames2(no2));
+		return d;
+		
+	}
+	public Issue getCode(int no) {
+		return dao.getCode(no);
+	}
+	
+	public void insert(Issue ins) {
+		dao.insert(ins);
+		for(MultipartFile report:ins.getReport()) {
+			upload(report);
+		}	
+	}
+	
+	public void insertMeasure(Issue ins) {
+		dao.insertMeasure(ins);
+		for(MultipartFile report:ins.getReport()) {
+			upload3(report);
+		}
+	}
+	public void insertMeasure2(Issue ins) {
+		dao.insertMeasure2(ins);
+		for(MultipartFile report:ins.getReport()) {
+			upload3(report);
+		}
+	}
+	
+	public void uptIssueState(Issue upt) {
+		dao.uptIssueState(upt);
+	}
+	public void updateIssue(Issue upt) {
+		dao.updateIssue(upt);
+		upload2(upt);
+	}
+	
+	public void updateMeasure(Issue upt) {
+		dao.updateMeasure(upt);
+		upload4(upt);
+	}
+	public void updateMeasure2(Issue upt) {
+		dao.updateMeasure2(upt);
+		//upload4(upt);
+	}
+	
+	public void deleteMeasure(Issue del) {
+		dao.deleteFile2(del);
+		dao.deleteMeasure(del);
+	}
+	
+	public void deleteIssue(Issue del) {
+		dao.deleteFile(del);
+		dao.deleteIssue(del);
+	}
+	
+	@Value("${upload}")
+	private String upload; // 업로드할 위치..
+	@Value("${tmpUpload}")
+	private String tmpUpload;// 임시업로드 위치.
+	private void upload(MultipartFile mtf) {
+		
+		String fileName=mtf.getOriginalFilename();
+		
+		if(fileName!=null&&!fileName.equals("")) {
+			File tmpFile = new File(tmpUpload+fileName);
+			// 해당 폴드에 동일한 파일이 있으면 삭제 처리
+			if(tmpFile.exists()) tmpFile.delete();
+			try {
+			// Stream으로 온 MultipartFile을 실제 파일로 변경처리.	
+				mtf.transferTo(tmpFile);
+				File orgFile = new File(upload+fileName);
+		
+			// tmp위치에 있는 파일을 현재 웹서버에 특정할 폴드로 이동.
+			// StandardCopyOption.REPLACE_EXISTING : 기존 동일 파일명이 있을 때,
+			// 마지막에 올린 파일로 변경 처리..
+				Files.copy(tmpFile.toPath(), orgFile.toPath(), 
+							StandardCopyOption.REPLACE_EXISTING);
+				
+				
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			dao.insertRepo(fileName);
+			
+		}
+	}	
+	// 파일 수정, 파일 정보 수정..
+		private void upload2(Issue upt) {
+			// getReport() : 수정 파일 정보
+			// getFnames() : 기존 파일 정보 (배열)
+			MultipartFile[] files = upt.getReport();
+			for(int idx=0;idx<files.length;idx++) {
+				String fileName=files[idx].getOriginalFilename();
+				if(fileName!=null&&!fileName.equals("")) {
+					File tmpFile = new File(tmpUpload+fileName);
+					// 해당 폴드에 동일한 파일이 있으면 삭제 처리
+					if(tmpFile.exists()) tmpFile.delete();
+					try {
+					// Stream으로 온 MultipartFile을 실제 파일로 변경처리.	
+						files[idx].transferTo(tmpFile);
+						File orgFile = new File(upload+fileName);
+				
+					// tmp위치에 있는 파일을 현재 웹서버에 특정할 폴드로 이동.
+					// StandardCopyOption.REPLACE_EXISTING : 기존 동일 파일명이 있을 때,
+					// 마지막에 올린 파일로 변경 처리..
+						Files.copy(tmpFile.toPath(), orgFile.toPath(), 
+									StandardCopyOption.REPLACE_EXISTING);
+						
+						
+					} catch (IllegalStateException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+//					System.out.println("org:"+upt.getFnames()[idx]);
+//					System.out.println("tar:"+fileName);
+//					System.out.println("no:"+upt.getNo());
+					/*
+					# 파일 수정에 대한 DB 처리
+					1. 게시물 고유번호 no, 기존 파일, 변경할 파일 정보
+					2. HashMap no : 게시물 글번호
+							   tar : 변경할 파일명
+							   org : 기존파일명
+					3. 기존 파일을 대체하는 경우 : update
+					      기존에 없는 파일을 추가 처리 : insert
+					
+					*/
+					
+					
+					// org, tar, no
+					String fnm = upt.getFnames()[idx];
+					HashMap<String, String> hm = new HashMap<String, String>();
+					hm.put("org", fnm);
+					hm.put("tar", fileName);
+					hm.put("no", ""+upt.getIssueno());				
+					if( fnm!=null && !fnm.equals("")) {
+						dao.uptFileInfo(hm);
+					}else {
+						dao.insFileInfo(hm);
+					} 
+					
+				}			
+				
+			}
+		}		
+		private void upload3(MultipartFile mtf) {
+			
+			String fileName=mtf.getOriginalFilename();
+			
+			if(fileName!=null&&!fileName.equals("")) {
+				File tmpFile = new File(tmpUpload+fileName);
+				// 해당 폴드에 동일한 파일이 있으면 삭제 처리
+				if(tmpFile.exists()) tmpFile.delete();
+				try {
+					// Stream으로 온 MultipartFile을 실제 파일로 변경처리.	
+					mtf.transferTo(tmpFile);
+					File orgFile = new File(upload+fileName);
+					
+					// tmp위치에 있는 파일을 현재 웹서버에 특정할 폴드로 이동.
+					// StandardCopyOption.REPLACE_EXISTING : 기존 동일 파일명이 있을 때,
+					// 마지막에 올린 파일로 변경 처리..
+					Files.copy(tmpFile.toPath(), orgFile.toPath(), 
+							StandardCopyOption.REPLACE_EXISTING);
+					
+					
+				} catch (IllegalStateException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				dao.insertRepo2(fileName);
+				
+			}
+		}	
+		// 파일 수정, 파일 정보 수정..
+		private void upload4(Issue upt) {
+			// getReport() : 수정 파일 정보
+			// getFnames() : 기존 파일 정보 (배열)
+			MultipartFile[] files = upt.getReport();
+			for(int idx=0;idx<files.length;idx++) {
+				String fileName=files[idx].getOriginalFilename();
+				if(fileName!=null&&!fileName.equals("")) {
+					File tmpFile = new File(tmpUpload+fileName);
+					// 해당 폴드에 동일한 파일이 있으면 삭제 처리
+					if(tmpFile.exists()) tmpFile.delete();
+					try {
+						// Stream으로 온 MultipartFile을 실제 파일로 변경처리.	
+						files[idx].transferTo(tmpFile);
+						File orgFile = new File(upload+fileName);
+						
+						// tmp위치에 있는 파일을 현재 웹서버에 특정할 폴드로 이동.
+						// StandardCopyOption.REPLACE_EXISTING : 기존 동일 파일명이 있을 때,
+						// 마지막에 올린 파일로 변경 처리..
+						Files.copy(tmpFile.toPath(), orgFile.toPath(), 
+								StandardCopyOption.REPLACE_EXISTING);
+						
+						
+					} catch (IllegalStateException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+//					System.out.println("org:"+upt.getFnames()[idx]);
+//					System.out.println("tar:"+fileName);
+//					System.out.println("no:"+upt.getNo());
+					/*
+					# 파일 수정에 대한 DB 처리
+					1. 게시물 고유번호 no, 기존 파일, 변경할 파일 정보
+					2. HashMap no : 게시물 글번호
+							   tar : 변경할 파일명
+							   org : 기존파일명
+					3. 기존 파일을 대체하는 경우 : update
+					      기존에 없는 파일을 추가 처리 : insert
+					
+					 */
+					
+					
+					// org, tar, no
+					String fnm = upt.getFnames()[idx];
+					HashMap<String, String> hm = new HashMap<String, String>();
+					hm.put("org", fnm);
+					hm.put("tar", fileName);
+					hm.put("no", ""+upt.getMeasureno());				
+					if( fnm!=null && !fnm.equals("")) {
+						dao.uptFileInfo2(hm);
+					}else {
+						dao.insFileInfo2(hm);
+					} 
+					
+				}			
+				
+			}
+		}	
+		
+		
+		public Project getDetail(int projectno) {
+			return dao.getDetail(projectno);
+		}
+		public ArrayList<Member> getMemList2(int projectno){
+			return dao.getMemList2(projectno);
+		}
+		public ArrayList<Task> getTaskList(int projectno){
+			return dao.getTaskList(projectno);
+		}
+		public ArrayList<Role> getRoleList(){
+			return dao.getRoleList();
+		}
+		public ArrayList<Gantt> gantList2(int projectno){
+			return dao.gantList2(projectno);
+		}
+		public ArrayList<Gantt> gantPTaskList(int projectno){
+			return dao.gantPTaskList(projectno);
+		}
+		public ArrayList<Gantt> gantCTaskList(int projectno){
+			return dao.gantCTaskList(projectno);
+		}
+	
+		public Task getTask(int taskno) {
+			return dao.getTask(taskno);
+		}
+	
+		
+		
+		
+		
+		
+		
+		
+		public ArrayList<Issue2> list2(IssueSch sch){
+			return dao.list2(sch);
+		}
+		
+		public Issue2 getIssue3(int no) {
+			return dao.getIssue3(no);
+		}
+	
+}

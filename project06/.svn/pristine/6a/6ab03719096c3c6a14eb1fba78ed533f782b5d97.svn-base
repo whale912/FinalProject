@@ -1,0 +1,172 @@
+package project06.mvc.service;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import project06.mvc.repository.HyeonjuDao;
+import project06.mvc.vo.Emp;
+import project06.mvc.vo.EmpList;
+
+@Service
+public class HyeonjuService {
+	@Autowired(required=false)
+	private HyeonjuDao dao;
+	
+	public ArrayList<Emp> memlist2(EmpList list){
+		
+		
+		// 1. 데이터 총 건수
+		list.setCount(dao.totCnt(list));
+		
+		// 2. 화면에 한번에 보여줄 데이터 건수 초기값 10
+		// 다음 부터는 선택된 페이지 데이터 건수에 의해서 처리
+		if(list.getPageSize()==0) {
+			list.setPageSize(10);
+		}
+		
+		// 3. 총 페이지 수 :  총 건수/한번에 보여줄데이터
+		//  27 / 10  ==> 3
+		// 총건수/페이지크기를실수로처리 나머지가 있게 한 후,
+		// 올림 처리..
+		//int totPage = (int)(Math.ceil(sch.getCount()/(double)sch.getPageSize()));
+		list.setPageCount((int)(Math.ceil(list.getCount()/(double)list.getPageSize())));
+		//  4. 현재 클릭한 페이지 초기값.
+		if(list.getCurPage()==0) {
+		list.setCurPage(1);
+		} 
+		/*
+		현재 페이지 번호, 1번
+		페이지당 보일 데이터 건수 10
+		화면에 나타날 데이터 1~3
+		1	3	1 2 3  시작번호 1, 마지막번호 3
+		마지막번호 ? 클릭한 페이지 번호 * 페이지당 보일 데이터건수
+		시작번호 ? (클릭한 페이지 번호-1) * 페이지당 보일 데이터 건수 +1 
+			(1 - 1) * 3 + 1 : 1			 
+		*/		
+		list.setStart((list.getCurPage()-1)*list.getPageSize()+1);
+		list.setEnd(list.getCurPage()*list.getPageSize());
+		System.out.println("시작번호:"+list.getStart());
+		System.out.println("마지막번호:"+list.getEnd());
+		
+		// block을 위한 속성값 설정
+		// 1. 초기 block size(한번에 보일 block의 크기) 설정
+		list.setBlockSize(10);
+		/*
+		1 2 3 ==> blocknum 1
+		
+		// 2. blocknum는 현재 페이지번호/블럭의 크기를 올림 처리
+		  
+		1/3, 2/3, 3/3 ==> 1		 
+		*/
+		
+		int blocknum = (int)Math.ceil(list.getCurPage()/(double)list.getBlockSize());
+		
+		// 3. blocksize가 10을 기준으로 
+		/*
+		1 2 3 ==> blocknum 1 일때,
+		
+		시작페이지번호와 마지막페이지번호
+		
+		1) 블럭의 마지막번호는 : 블럭의 크기 * blocknum
+		단, 마지막페이지번호보다 클 수 없다.
+		마지막블럭번호는 페이지 크기보다 클 때는 페이지 크기를 마지막 블럭 번호로 설정한다.
+		==> 3항 연산자로 간단하게 처리한다. 		
+		 */
+		
+		int endBlock = blocknum*list.getBlockSize();
+		list.setEndBlock(endBlock>list.getPageCount()?list.getPageCount():endBlock);
+		
+		// 시작번호는 현재블럭의 번호(blocknum-1)*현재블럭크기+1
+		
+		System.out.println("블럭번호:"+blocknum);
+		list.setStartBlock((blocknum-1)*list.getBlockSize()+1);
+		System.out.println("시작block번호:"+list.getStartBlock());
+		System.out.println("마지막block번호:"+list.getEndBlock());
+				
+		return dao.memlist2(list);
+	}
+	
+	
+	
+	// 마이프로필 페이지
+	
+	public Emp memInfo(String empno) {
+		return dao.memInfo(empno);
+	}
+	public void myUpdate(Emp mem) {
+	
+		for(MultipartFile proImg:mem.getProImg()) {
+			// 물리적 파일 정리
+			upload(proImg);
+		}
+		dao.myUpdate(mem);
+	}
+	
+
+	@Value("${upload}")
+	private String upload; // 업로드할 위치..
+	@Value("${tmpUpload}")
+	private String tmpUpload;// 임시업로드 위치.
+	private void upload(MultipartFile proImg) {
+		
+		String fileName=proImg.getOriginalFilename();
+		
+		if(fileName!=null&&!fileName.equals("")) {
+			File tmpFile = new File(tmpUpload+fileName);
+			// 해당 폴드에 동일한 파일이 있으면 삭제 처리
+			if(tmpFile.exists()) tmpFile.delete();
+			try {
+			// Stream으로 온 MultipartFile을 실제 파일로 변경처리.	
+				proImg.transferTo(tmpFile);
+				File orgFile = new File(upload+fileName);
+		
+			// tmp위치에 있는 파일을 현재 웹서버에 특정할 폴드로 이동.
+			// StandardCopyOption.REPLACE_EXISTING : 기존 동일 파일명이 있을 때,
+			// 마지막에 올린 파일로 변경 처리..
+				Files.copy(tmpFile.toPath(), orgFile.toPath(), 
+							StandardCopyOption.REPLACE_EXISTING);
+				
+				
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+			
+		}
+	}
+
+
+	// 사원 등록/수정/삭제
+	
+	public ArrayList<Emp> memNew(Emp name) {
+		return dao.memNew(name);
+	}
+
+	public void regist(Emp regi) {
+		dao.regist(regi);		
+	}
+
+	public void updateRank(Emp upRank) {
+		dao.updateRank(upRank);
+		
+	}
+
+	public void delete(Emp del) {
+		dao.delete(del);
+		
+	}
+
+
+}

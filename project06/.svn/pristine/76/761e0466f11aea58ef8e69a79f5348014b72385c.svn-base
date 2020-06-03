@@ -1,0 +1,70 @@
+package project06.mvc.vo;
+
+public class TaskDivision {
+	private int divno;
+	private int taskno;
+	private String projectno;
+	private String title;
+	private String startdate;
+	private String enddate;
+	private double progress;
+	private String etc;
+	private String fanme;
+	
+	public int getDivno() {
+		return divno;
+	}
+	public void setDivno(int divno) {
+		this.divno = divno;
+	}
+	public int getTaskno() {
+		return taskno;
+	}
+	public void setTaskno(int taskno) {
+		this.taskno = taskno;
+	}
+	public String getProjectno() {
+		return projectno;
+	}
+	public void setProjectno(String projectno) {
+		this.projectno = projectno;
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	public double getProgress() {
+		return progress;
+	}
+	public void setProgress(double progress) {
+		this.progress = progress;
+	}
+	public String getEtc() {
+		return etc;
+	}
+	public void setEtc(String etc) {
+		this.etc = etc;
+	}
+	public String getStartdate() {
+		return startdate;
+	}
+	public void setStartdate(String startdate) {
+		this.startdate = startdate;
+	}
+	public String getEnddate() {
+		return enddate;
+	}
+	public void setEnddate(String enddate) {
+		this.enddate = enddate;
+	}
+	public String getFanme() {
+		return fanme;
+	}
+	public void setFanme(String fanme) {
+		this.fanme = fanme;
+	}
+	
+	
+}

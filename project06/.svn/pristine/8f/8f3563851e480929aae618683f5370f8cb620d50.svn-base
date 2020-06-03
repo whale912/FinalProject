@@ -1,0 +1,28 @@
+package project06.mvc.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import project06.mvc.service.HyeonjuService;
+import project06.mvc.vo.EmpList;
+
+@Controller
+
+@RequestMapping("/mlist.do")
+public class mlistCtrl {
+	@Autowired(required=false)
+	private HyeonjuService service;
+	
+	
+	//http://localhost:5080/project06/mlist.do?method=base
+	@RequestMapping(params="method=base")
+	public String mlist(@ModelAttribute("mem") EmpList list,Model d) {
+		d.addAttribute("members",service.memlist2(list));
+		
+		return "WEB-INF\\views\\hyeonju\\member_list.jsp";
+	}
+
+}

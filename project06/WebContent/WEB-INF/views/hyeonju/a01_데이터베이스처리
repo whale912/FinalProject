@@ -1,0 +1,83 @@
+# spring에서 DB 처리 순서.
+1. sql 작성.
+	select * from emp
+	where empno=@@
+	and job=@@
+2. 입력과 return 기반이 되는 VO 클래스 선언.
+    Emp.java
+3. Repository 패키지에 interface 선언..
+	1) 인터페이스명
+	2) 메서드 return값  
+	3) 메서드명 
+	4) 입력매개객체/변수
+	==> 실제 mybatis에서 sql과 연동하는 정보
+			SELECT *
+			FROM emp
+			WHERE 1=1
+			AND ename LIKE '%'||''||'%'
+			AND job LIKE '%'||''||'%';	
+	--> public ArrayList<Emp> getEmpList(Emp sch);		
+	/*
+	select *
+	from emp
+	where empno=?
+	 * */
+	public Emp getEmp(int empno);	
+	
+4. 	spring.xml에서 
+	1) VO클래스 alias명으로 등록
+	2) xxxMapper.xml 선언..
+5. XXXMapper.xml
+	1) 인터페이스에서 선언된 내용과 연결처리.
+		- 인터페이스명(패키지명포함) ==> namespace로 선언.
+		- 메서드의 return값
+			 ==> resultType(단일), resultMap(여러개)관 연결
+			        ex) public emp   public ArrayList<Emp>
+		- 메서드명 ==> 각 sql의 id
+			
+		- 입력매개변수/객체 ==> parameterType, parameterMap
+		
+		
+		
+		
+# 웹화면 구현
+
+1. Repository단 service에서 호출
+2. Service단 controller에서 호출
+3. Controller에서 model로 설정 화면 출력..
+			
+			
+			
+			
+# emp 처리.
+
+
+1. sql 작성.
+SELECT *
+FROM emp
+WHERE 1=1
+AND ename LIKE '%'||''||'%'
+AND job LIKE '%'||''||'%';
+
+2. 입력과 return 기반이 되는 VO 클래스 선언.
+
+3. Repository 패키지에 interface 선언..
+	1) 인터페이스명
+	2) 메서드 return값  
+	3) 메서드명 
+	4) 입력매개객체/변수
+	==> 실제 mybatis에서 sql과 연동하는 정보
+	public interface EmpRep { 
+		public ArrayList<Emp> empList(Emp sch);	
+	
+4. 	spring.xml에서 
+	1) VO클래스 alias명으로 등록
+	2) xxxMapper.xml 선언..
+5. XXXMapper.xml
+	1) 인터페이스에서 선언된 내용과 연결처리.
+		- 인터페이스명 ==> namespace로 선언.
+		- 메서드의 return값 ==> resultType, resultMap과 연결
+		- 메서드명 ==> 각 sql의 id
+		- 입력매개변수/객체 ==> parameterType, parameterMap
+
+

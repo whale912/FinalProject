@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >	
+	
+<mapper namespace="project06.mvc.repository.HyeonjuDao">
+<resultMap type="emp" id="memberList"/>	
+	
+	<!-- 
+	// empMapper.xml과 연결 
+	// EmpRep ==> namspace명
+	// ArrayList<Emp> ==> ResultMap
+	// empList ==> id
+	// Emp ==> parameterType
+	resultMap 객체 선언 단위 객체가 모인 객체 선언
+	
+	// mlistMapper.xml과 연결
+	// HyeonjuDao ==> namespace명
+	// ArrayList<Emp> ==> ResultMap
+	// memlist, memlist2 ==> id
+	// Emp, EmpList ==> parameterType	
+	
+	resultMap 객체 선언 단위 객체가 모인 객체 선언
+    -->	
+ 	<!-- resultMap은 배열형태로 결과값을 return할 객체
+ 		 resultType 단일 데이터형태로 결과값을 return할 객체
+ 		 
+ 		 column ==> vo와 연결하여 ArrayList로 처리..
+ 	 -->
+		
+	
+	
+		
+	<!-- 사원목록 페이징처리&검색 -->
+	<!-- int totCnt(EmpList list) : HyeonjuDao.java에 선언 -->
+	<!-- 검색할 내용인 사원명, 부서명, 직책명, 직급명 선언  -->
+	<select id="totCnt" resultType="int" parameterType="emplist">
+		SELECT count(*) 
+		FROM(
+				SELECT e.EMPNO, e.DEPTNO, d.DNAME, e.RANKNO, e.AUTHNO, e.NAME, e.EMAIL, e.HIREDATE 
+				FROM EMP e, DEPT d
+				WHERE e.DEPTNO = d.DEPTNO(+))
+		WHERE 1=1
+		<if test="mname!=null and mname!=''">
+		and name like '%'||#{mname}||'%'
+		</if>
+		<if test="dname!=null and dname!=''">
+		and dname like '%'||#{dname}||'%'
+		</if>
+		<if test="authno!=0 and authno!=''">
+		and authno =#{authno}
+		</if>
+		<if test="rankno!=0 and rankno!=''">
+		and rankno =#{rankno}
+		</if>
+	</select>
+	
+	<!-- 사원 목록&페이징처리  -->
+	<select id="memlist2" resultMap="memberList" parameterType="emplist" >
+		SELECT * 
+		FROM(
+			SELECT rownum cnt,a.*
+			FROM 
+			(SELECT e.EMPNO, e.DEPTNO, d.DNAME, e.RANKNO, e.AUTHNO, e.NAME, e.EMAIL, e.HIREDATE 
+			FROM EMP e, DEPT d
+			WHERE e.DEPTNO = d.DEPTNO(+)) a
+			WHERE 1=1
+			<if test="mname!=null and mname!=''">
+			and name like '%'||#{mname}||'%'
+			</if>
+			<if test="dname!=null and dname!=''">
+			and dname like '%'||#{dname}||'%'
+			</if>
+			<if test="authno!=0 and authno!=''">
+			and authno =#{authno}
+			</if>			
+			<if test="rankno!=0 and rankno!=''">
+			and rankno =#{rankno}
+			</if>  )
+		    WHERE cnt BETWEEN #{start} AND #{end}	
+	</select>
+	
+	<!-- 사원 등록/삭제/수정 -->
+	
+	<insert id="regist" parameterType="emp">
+		INSERT INTO EMP 
+		VALUES ((to_char(sysdate,'YYYY')||#{deptno}||lpad(emp_sequence.nextval,3,0)),
+				#{deptno},#{rankno},#{authno},'123456a!',#{name},#{email},sysdate,'')	
+	</insert>
+	
+	<update id="updateRank" parameterType="emp">
+		UPDATE EMP SET AUTHNO = #{authno} WHERE EMPNO=#{empno}
+	</update>
+	
+	<delete id="delete" parameterType="emp">
+		DELETE FROM EMP WHERE EMPNO=#{empno}
+	</delete>
+	
+	
+
+	<!--마이페이지-->
+
+	<select id="memInfo" resultType="emp" parameterType="String">
+		SELECT *FROM EMP
+		WHERE EMPNO=#{empno}
+	</select>
+	
+	<update id="myUpdate" parameterType="emp">
+		UPDATE emp
+		SET PROFILE= #{profile}, name=#{name}, RANKNO =#{rankno}, email =#{email}, deptno=#{deptno}
+		WHERE EMPNO=#{empno}
+	</update>
+	
+	
+	
+	
+	
+	
+</mapper>
