@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >	
+	<mapper namespace="project06.mvc.repository.JinhyeokRep">
+ 	<resultMap type="board" id="boardResult"/>
+ 	<resultMap type="project" id="projectResult"/>
+ 	<resultMap type="jsonboard" id="JsonBoardResult"/>
+ 	<resultMap type="reply" id="replyResult"/>
+ 	
+ 	<!--  현재 로그인한 아이디가 진행중인 프로젝트 -->
+ 	<select id="prolist_ing" resultMap="projectResult" parameterType="board">
+ 	SELECT NVL(p.projectno,0) projectno , p.pname FROM emp e , MEMBER m  , project p 
+	WHERE e.empno = m.empno AND p.PROJECTNO = m.PROJECTNO AND state ='진행' AND e.empno=	#{empno,jdbcType=VARCHAR}
+	</select>
+ 	<!-- 
+ 	int totCnt(BoardSch sch)
+ 	 -->
+ 	<select id="prolist" resultMap="projectResult" parameterType="board">
+		SELECT p.pname, p.projectno, p.state
+		FROM project p , MEMBER m
+		WHERE p.PROJECTNO = m.PROJECTNO
+		AND m.empno = #{empno}
+		ORDER BY p.enddate desc 
+ 	
+ 	</select>
+ 	<select id="prolistall" resultMap="projectResult" parameterType="project">
+ 		select * from project
+ 		ORDER BY enddate desc 
+ 	</select>
+ 	
+ 	
+ 	
+ 	<select id="totCnt" resultType="int" parameterType="board">
+ 		select count(*) 
+		from pjboard b , emp e
+		where b.projectno=#{projectno} AND e.empno = b.writer
+		<if test="title!=null and title!=''">
+		and b.title like '%'||#{title}||'%'
+		</if>
+		<if test="name!=null and name!=''">
+		and e.name like '%'||#{name}||'%'
+		</if>		
+ 	</select> 
+
+ 	<select id="list" resultMap="boardResult" 
+ 		parameterType="board" >
+ 		SELECT *
+ 		FROM(
+			select rownum cnt, level, nvl(r.totrecnt,0)totrecnt , b.PJBOARDNO, b.PROJECTNO, b.REFNO,b.TITLE,b.CREDATE,b.VIEWS,b.writer,e.name,b.NOTICETYPE
+			from pjboard b , emp e , (select PJBOARDNO, count(*) totrecnt from pjreply GROUP BY PJBOARDNO) r
+			where b.projectno=#{projectno} AND e.empno = b.writer AND b.PJBOARDNO = r.pjboardno(+)
+			<if test="title!=null and title!=''">
+			and b.title like '%'||#{title}||'%'
+			</if>
+			<if test="name!=null and name!=''">
+			and e.name like '%'||#{name}||'%'
+			</if>
+		START WITH refno = 0
+			CONNECT BY PRIOR b.PJBOARDNO = refno
+			ORDER siblings BY b.PJBOARDNO DESC ) 		
+			WHERE cnt BETWEEN #{start} AND #{end}
+			ORDER BY NOTICETYPE DESC, CNT	
+ 	</select>
+ 	<select id="blistjson" resultMap="JsonBoardResult" 
+ 		parameterType="int">
+ SELECT *
+ 		FROM(
+			select rownum cnt, level, b.PJBOARDNO,b.PROJECTNO,b.REFNO,b.TITLE,to_char(b.CREDATE,'YYYY-MM-DD') CREDATE,b.VIEWS,b.writer,e.name, b.NOTICETYPE 
+			from pjboard b , emp e
+			where b.projectno=#{projectno} AND e.empno = b.writer
+		START WITH refno = 0
+			CONNECT BY PRIOR b.PJBOARDNO = refno
+			ORDER siblings BY b.PJBOARDNO DESC )		
+			WHERE cnt BETWEEN 1 AND 5
+			ORDER BY NOTICETYPE DESC, CNT
+
+ 	</select>
+ 	<!--  댓글 불러오기 -->
+ 	<select id="replylist" resultMap="replyResult" parameterType="reply">
+	 	SELECT * FROM(
+			SELECT rownum cnt,a.*
+			FROM
+				(SELECT p.pjreplyno,	p.writer , p.pjboardno,e.name,p.content, to_char(p.credate,'YYYYMMDDHH24MISS')credate 
+				FROM PJREPLY p , emp e
+	      		WHERE pjboardno = #{pjboardno} AND e.empno = p.writer   
+	      		ORDER BY p.credate asc) a )
+	    WHERE cnt BETWEEN #{start} AND #{end}
+     </select>
+	
+	 			<!-- SELECT *
+ 		FROM(	SELECT rownum cnt,p.pjreplyno, p.pjboardno,e.name,p.content,to_char(p.credate,'YYYYMMDDHH24MISS')credate FROM PJREPLY p , emp e
+		WHERE pjboardno = #{pjboardno} AND e.empno = p.writer
+		ORDER BY p.credate asc)				
+		WHERE cnt BETWEEN #{start} AND #{end} -->
+		
+	
+		
+ 	
+ 	<!-- 댓글json데이터 불러오기 -->
+ 	<select id="replyjson" resultMap="replyResult" parameterType="int" >
+ 	
+ 		SELECT * FROM pjreply where pjreplyno = #{pjreplyno}
+ 	
+ 	</select>
+ 	
+ 	
+ 	<!--  댓글총갯수 -->
+ 	 <select id="totreCnt" resultType="int" parameterType="reply">
+  		select count(*) from pjreply	
+		where pjboardno= #{pjboardno}
+	
+ 	</select> 
+ 	
+ 	
+ 	<!--  게시물 상세 페이지 -->
+ 	 	<select id="getBoard" 
+ 		resultType="board" parameterType="int">
+ 		
+ 				SELECT b.*, e.name
+				FROM pjboard b, emp e
+				WHERE pjboardno= #{pjboardno} AND e.empno = b.writer	
+ 				
+ 	</select>
+ 	 
+	
+ 	
+
+ 	<!-- 조회수 업데이트 -->
+	 <update id="uptViews" parameterType="board">
+ 		UPDATE pjboard
+ 		   SET views = views+1
+ 		 WHERE pjboardno = #{pjboardno}
+ 	</update>
+  
+	<!-- 글 등록 -->
+	
+ 	 	<insert id="insert" parameterType="board">
+	 	
+		INSERT INTO pjboard VALUES (pjboard_seq.nextval,#{projectno},#{refno},
+									#{writer},#{title},#{content},sysdate,sysdate,0,#{noticetype})									
+ 		</insert>
+
+ 		 <insert id="insertRepo" parameterType="String"> 
+ 		insert into pjboard_file values(pjboard_seq.currval,
+ 			#{fname}, sysdate, sysdate) 
+		</insert> 
+	<!-- 댓글등록 -->
+		<insert id="insreply" parameterType="reply">
+			INSERT INTO PJREPLY values(pjreply_seq.nextval,#{pjboardno},#{rewriter,jdbcType=VARCHAR},#{recontent,jdbcType=VARCHAR},sysdate)
+		
+		</insert>	
+	<!-- 댓글삭제 -->
+		<delete id="delpjreply" parameterType="int">
+			DELETE pjreply WHERE pjreplyno = #{pjreplyno}
+		</delete>
+	<!-- 댓글 수정 -->
+		<update id="uptreply" parameterType="board">
+			UPDATE pjreply SET content = #{recontent2} WHERE pjreplyno= #{pjreplyno}
+		
+		</update>	
+	<!-- 글 삭제 -->
+		<delete id="delete" parameterType="int">
+			DELETE pjboard WHERE pjboardno = #{pjboardno}
+		</delete>
+	<!-- 글 수정 -->
+		<update id="uptpjboard" parameterType="board">
+		
+		UPDATE pjboard SET title = #{title,jdbcType=VARCHAR}, 
+						   content= #{content,jdbcType=VARCHAR},
+						   uptdate = sysdate 
+						   WHERE pjboardno = #{pjboardno}
+		
+		</update>	
+	<!--  파일관련 -->
+	  	<update id="uptFileInfo" parameterType="java.util.HashMap">
+		UPDATE pjboard_file
+			SET fname = #{tar,jdbcType=VARCHAR},
+	        uptdate= sysdate
+	    WHERE pjboardno = #{no,jdbcType=INTEGER}
+		AND fname = #{org,jdbcType=VARCHAR}	    	
+	</update> 	
+ 	<insert id="insFileInfo" parameterType="java.util.HashMap"> 
+ 		insert into pjboard_file values(#{no}, 
+ 			#{tar,jdbcType=VARCHAR}, sysdate, sysdate)
+	</insert>	
+	 	<resultMap type="String" id="strMap"/> 
+ 	<select id="fnames" resultMap="strMap" parameterType="int">
+ 		SELECT fname 
+ 		FROM pjboard_file		
+ 		WHERE pjboardno=#{pjboardno,jdbcType=INTEGER}
+ 	</select> 	 
+ 
+ 	
+
+</mapper>

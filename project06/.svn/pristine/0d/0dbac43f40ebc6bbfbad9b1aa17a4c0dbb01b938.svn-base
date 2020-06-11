@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >	
+<mapper namespace="project06.mvc.repository.SungbinDao">
+	<resultMap type="issue" id="issueResult" />
+	<resultMap type="issue2" id="issueResult2" />
+	<resultMap type="project" id="projectResult"/>
+	<resultMap type="psch" id="projectSchResult"/>
+	<resultMap type="member" id="memResult"></resultMap>
+	<select id="pieYear" resultMap="projectResult">
+		SELECT DISTINCT to_char(enddate,'yyyy') enddate
+		FROM project ORDER BY enddate DESC
+	</select>
+	
+
+	<select id="getMemList2" parameterType="member" resultMap="memResult">
+		SELECT e.EMPNO, e.NAME, to_char(m.REGDATE,'YYYY-MM-DD') REGDATE, r.RNAME
+		FROM MEMBER m, EMP e, ROLE r
+		WHERE m.EMPNO = e.EMPNO 
+		AND m.ROLENO = r.ROLENO
+		AND PROJECTNO = #{projectno}
+	</select>
+	<select id="getTaskList" resultType="task" parameterType="int">
+		SELECT * FROM TASK
+		WHERE PROJECTNO = #{projectno}
+	</select>
+	<select id="getRoleList" resultType="role">
+		SELECT * FROM ROLE
+	</select>
+	<select id="gantList2" resultType="gantt" parameterType="int">
+		SELECT p.PROJECTNO id, p.PNAME text, p."TYPE", to_char(p.STARTDATE,'DD-MM-YYYY') start_date, 
+		(p.ENDDATE-p.STARTDATE) duration,
+		p.PROGRESS progress, p."OPEN",e.NAME "users", p.EMPNO owner_id
+		FROM PROJECT p, EMP e 
+		WHERE p.EMPNO = e.EMPNO
+		AND p.PROJECTNO = #{projectno}
+	</select>
+	<select id="gantPTaskList" resultType="gantt" parameterType="int">
+		SELECT t.TASKNO id, t.TITLE text, t."TYPE", to_char(t.P_STARTDATE,'DD-MM-YYYY') start_date, 
+		(t.P_ENDDATE-t.P_STARTDATE) duration,
+		t.PROGRESS progress, t."OPEN", e.NAME "users", 
+		t.PROJECTNO parent, t.PRIORITY priority, t.EMPNO owner_id
+		FROM TASK t, EMP e
+		WHERE t.EMPNO = e.EMPNO(+)
+		AND t.REFNO =0
+		AND t.PROJECTNO = #{projectno}
+	</select>
+	<select id="gantCTaskList" resultType="gantt" parameterType="int">
+		SELECT t.TASKNO id, t.TITLE text, to_char(t.P_STARTDATE,'DD-MM-YYYY') start_date, 
+		(t.P_ENDDATE-t.P_STARTDATE) duration,
+		t.PROGRESS progress, t."OPEN", e.NAME "users", 
+		t.REFNO parent, t.PRIORITY priority, t.EMPNO owner_id
+		FROM TASK t, EMP e
+		WHERE t.EMPNO = e.EMPNO(+)
+		AND t.REFNO !=0
+		AND t.PROJECTNO = #{projectno}
+	</select>	
+	<select id="getTask" resultType="task" parameterType="int">
+		SELECT TASKNO, PROJECTNO, REFNO, TITLE, REFNO, EMPNO, 
+		CONTENT, to_char(ASSIGNDATE,'YYYY-MM-DD') ASSIGNDATE, 
+		to_char(P_STARTDATE,'YYYY-MM-DD') P_STARTDATE, to_char(P_ENDDATE,'YYYY-MM-DD') P_ENDDATE, 
+		PROGRESS, "TYPE", "OPEN", PRIORITY, STATE
+		FROM TASK
+		WHERE TASKNO = #{taskno}
+	</select>	
+				
+	
+	
+	
+	<select id="codeList" resultMap="issueResult" parameterType="isch">
+	SELECT codeno codeno, div codediv, name codename FROM measurecode where div=1
+	</select>
+	<select id="codeList2" resultMap="issueResult" parameterType="isch">
+	SELECT codeno codeno, div codediv, name codename FROM measurecode where div=2
+	</select>
+	<select id="codeList3" resultMap="issueResult" parameterType="isch">
+	SELECT codeno codeno, div codediv, name codename FROM measurecode where div=#{codediv}
+	</select>
+	
+		
+	<select id="getDetail" parameterType="int" resultMap="projectResult">
+		SELECT p.PROJECTNO, p.PNAME, p.kindno, k.KNAME, e.NAME, p.empno, 
+		to_char(p.STARTDATE,'YYYY-MM-DD') startdate, to_char(p.ENDDATE,'YYYY-MM-DD') enddate, p.PERSONNEL, p.BUDGET, p.STATE 
+		FROM PROJECT p, KIND k, EMP e
+		WHERE p.EMPNO = e.EMPNO AND p.KINDNO = k.KINDNO AND p.PROJECTNO = #{projectno}
+	</select>
+	
+	<select id="gantList" resultType="gantt" parameterType="int">
+		SELECT p.projectno id, p.pname text, p."TYPE",(SELECT e.name FROM emp e WHERE e.empno=p.empno) "users",
+		to_char(p.startdate,'DD-MM-YYYY') start_date, to_char(p.enddate,'DD-MM-YYYY') end_date, 
+		(p.ENDDATE-p.STARTDATE) duration,p.progress progress,p."OPEN",p.state state,
+		p.progress*100||'%' percent
+		FROM project p where p.state='진행'
+	</select>	
+
+	<select id="maxYear" resultMap="projectSchResult" parameterType="psch">
+	SELECT * FROM(
+	SELECT to_char(enddate,'yyyy') enddate, count(*) cnt
+	FROM project
+	GROUP BY to_char(enddate,'yyyy')
+	ORDER BY cnt DESC) WHERE rownum=1
+	</select>	
+	<select id="totYearList" resultMap="projectSchResult" parameterType="psch">
+	SELECT to_char(enddate,'yyyy') enddate, count(*) cntyear
+	FROM project WHERE state IN ('종료','진행')
+	GROUP BY to_char(enddate,'yyyy')
+	ORDER BY enddate ASC
+	</select>	
+	<select id="totPieList" resultMap="projectSchResult" parameterType="psch">
+	SELECT * FROM (SELECT count(*) kindno1 FROM project WHERE kindno=1 AND state IN ('종료','진행')), 
+	(SELECT count(*) kindno2 FROM project WHERE kindno=2 AND state IN ('종료','진행')),
+	(SELECT count(*) kindno3 FROM project WHERE kindno=3 AND state IN ('종료','진행')),
+	(SELECT count(*) kindno4 FROM project WHERE kindno=4 AND state IN ('종료','진행')),
+	(SELECT count(*) kindno5 FROM project WHERE kindno=5 AND state IN ('종료','진행'))
+	</select>	
+	<select id="totPieListJson" resultMap="projectSchResult" parameterType="int">
+	SELECT * FROM (SELECT count(*) kindno1 FROM project WHERE kindno=1 AND to_char(enddate,'yyyy')=#{year}), 
+	(SELECT count(*) kindno2 FROM project WHERE kindno=2 AND to_char(enddate,'yyyy')=#{year}),
+	(SELECT count(*) kindno3 FROM project WHERE kindno=3 AND to_char(enddate,'yyyy')=#{year}),
+	(SELECT count(*) kindno4 FROM project WHERE kindno=4 AND to_char(enddate,'yyyy')=#{year}),
+	(SELECT count(*) kindno5 FROM project WHERE kindno=5 AND to_char(enddate,'yyyy')=#{year})
+	</select>	
+	<select id="totPieList2" resultMap="projectSchResult" parameterType="psch">
+	SELECT count(*) count,p.kindno kindno,k.kname kname 
+	FROM project p,kind k WHERE k.kindno=p.kindno GROUP BY p.kindno,k.kname
+	</select>	
+<!-- 	<select id="totPieList" resultMap="projectSchResult" parameterType="psch">
+	SELECT * FROM (SELECT count(*) waiting FROM project WHERE state='대기'), 
+	(SELECT count(*) proceeding FROM project WHERE state='진행'),
+	(SELECT count(*) stop FROM project WHERE state='중단')
+	</select>	 -->
+	<select id="totPieIssue" resultMap="issueResult" parameterType="isch">
+	SELECT * FROM (SELECT count(*) codeno1 FROM issue WHERE state='조치완료' AND codeno=1),
+	(SELECT count(*) codeno2 FROM issue WHERE state='조치완료' AND codeno=2),
+	(SELECT count(*) codeno3 FROM issue WHERE state='조치완료' AND codeno=3),
+	(SELECT count(*) codeno4 FROM issue WHERE state='조치완료' AND codeno=4),
+	(SELECT count(*) codeno5 FROM issue WHERE state='조치완료' AND codeno=5),
+	(SELECT count(*) codeno6 FROM issue WHERE state='조치완료' AND codeno=6),
+	(SELECT count(*) codeno7 FROM issue WHERE state='조치완료' AND codeno=7),
+	(SELECT count(*) codeno8 FROM issue WHERE state='조치완료' AND codeno=8)
+	</select>	
+	
+	
+
+	<select id="totCnt2" resultType="int" parameterType="psch">
+		SELECT count(*) FROM(
+		SELECT p.projectno,p.kindno,p.pname,p.empno,(SELECT e.name FROM emp e WHERE p.empno=e.empno) name ,p.state,to_char(p.startdate,'yyyy-mm-dd'),to_char(p.enddate,'yyyy-mm-dd'),p.progress,
+		(SELECT count(*) FROM issue i WHERE i.projectno=p.projectno) issuecnt
+		FROM project p 
+		WHERE p.projectno=p.projectno 
+		<if test="keyword!=null and keyword!=''">
+		and (p.pname like '%'||#{keyword}||'%')
+		</if>
+		)
+	</select>	
+	
+
+	
+ 	<select id="prolist" resultMap="projectResult" parameterType="psch">
+		SELECT * FROM(
+		SELECT rownum cnt,a.*
+		FROM (
+		SELECT p.projectno,p.kindno,p.pname,p.empno,(SELECT e.name FROM emp e WHERE p.empno=e.empno) name ,p.state,to_char(p.startdate,'yyyy-mm-dd') startdate,to_char(p.enddate,'yyyy-mm-dd') enddate,p.progress,
+		(SELECT count(*) FROM issue i WHERE i.projectno=p.projectno) issuecnt
+		FROM project p 
+		WHERE p.projectno=p.projectno 
+		<if test="keyword!=null and keyword!=''">
+		and (p.pname like '%'||#{keyword}||'%')
+		</if>
+		ORDER BY startdate DESC ) a )
+		WHERE cnt BETWEEN #{start} AND #{end}
+	</select> 
+	<select id="prolist2" resultMap="projectResult" parameterType="int">
+	SELECT p.projectno,p.kindno,p.pname,p.empno,(SELECT e.name FROM emp e WHERE p.empno=e.empno) name ,p.state,to_char(p.startdate,'yyyy-mm-dd') startdate,to_char(p.enddate,'yyyy-mm-dd') enddate,p.progress,
+	(SELECT count(*) FROM issue i WHERE i.projectno=p.projectno) issuecnt,(SELECT k.kname FROM kind k WHERE k.kindno=p.kindno) kname,
+	(SELECT count(*) FROM MEMBER m WHERE p.projectno=m.projectno) cnt,budget
+	FROM project p WHERE p.projectno=#{projectno}
+	</select>
+	
+
+ 	<select id="totCnt" resultType="int" parameterType="isch">
+	SELECT count(*) FROM(
+		SELECT i.issueno,p.pname, t.title tname, e.name, i.regdate, i.title,i.content,e2.name mname, 
+		m.title mtitle, m.content mcontent,m.measuredate, i.state,i.projectno,i.taskno,m.measureno 
+		FROM issue i LEFT OUTER JOIN measure m ON i.issueno = m.issueno 
+		JOIN project p ON i.projectno=p.projectno JOIN task t ON i.taskno=t.taskno JOIN emp e ON i.empno=e.empno
+		LEFT OUTER JOIN emp e2 ON e2.empno=m.empno
+		<if test="memempno!=null and memempno!='' and memauthno==1">
+					where i.empno like '%'||#{memempno}||'%'
+					</if>
+					<if test="memempno!=null and memempno!='' and memauthno==2">
+					where p.empno like '%'||#{memempno}||'%'
+					</if>
+					<if test="memempno!=null and memempno!='' and memauthno==4">
+					where 1=1
+					</if>
+					<if test="projectno!=null and projectno!='' and projectno!=0">
+					and i.projectno like '%'||#{projectno}||'%'
+					</if>
+					<if test="projectno==0">
+					and i.projectno like '%'||''||'%'
+					</if>
+		<if test="keyword!=null and keyword!=''">
+		and (p.pname like '%'||#{keyword}||'%'
+		or t.title like '%'||#{keyword}||'%'
+		or i.title like '%'||#{keyword}||'%'
+		or e.name like '%'||#{keyword}||'%')
+		</if>
+		)			
+ 	</select> 	
+	
+ 	<select id="list" resultMap="issueResult" parameterType="isch">
+		SELECT * FROM(
+			SELECT rownum cnt,a.*
+			FROM (SELECT i.issueno,p.pname, t.title tname, e.name, i.regdate, i.title,i.content,e2.name mname, 
+					m.title mtitle, m.content mcontent,m.measuredate, i.state,i.projectno,i.taskno,m.measureno 
+					FROM issue i LEFT OUTER JOIN measure m ON i.issueno = m.issueno 
+					JOIN project p ON i.projectno=p.projectno JOIN task t ON i.taskno=t.taskno 
+					JOIN emp e ON i.empno=e.empno
+					LEFT OUTER JOIN emp e2 ON e2.empno=m.empno
+					<if test="memempno!=null and memempno!='' and memauthno==1">
+					where i.empno like '%'||#{memempno}||'%'
+					</if>
+					<if test="memempno!=null and memempno!='' and memauthno==2">
+					where p.empno like '%'||#{memempno}||'%'
+					</if>
+					<if test="memempno!=null and memempno!='' and memauthno==4">
+					where 1=1
+					</if>
+					<if test="projectno!=null and projectno!='' and projectno!=0">
+					and i.projectno like '%'||#{projectno}||'%'
+					</if>
+					<if test="projectno==0">
+					and i.projectno like '%'||''||'%'
+					</if>
+			<if test="keyword!=null and keyword!=''">
+			and (p.pname like '%'||#{keyword}||'%'
+			or t.title like '%'||#{keyword}||'%'
+			or i.title like '%'||#{keyword}||'%'
+			or e.name like '%'||#{keyword}||'%')
+			</if>
+			ORDER BY i.issueno DESC ) a )
+			WHERE cnt BETWEEN #{start} AND #{end}
+	</select> 
+
+
+	<select id="getCode" resultType="issue" parameterType="int">
+		SELECT codeno codeno,div codediv, name codename,etc codeetc
+		FROM measurecode WHERE codeno=#{no}
+	</select>
+
+	<select id="getIssue" resultType="issue" parameterType="int">
+		SELECT i.issueno,p.pname, t.title tname, e.name, i.regdate, i.title,i.content,e2.name mname, 
+		m.title mtitle, m.content mcontent,m.measuredate, i.state,i.projectno,i.taskno,m.measureno,
+		i.codeno codeno,mc.name codename,mc.div codediv,mc.etc codeetc 
+		FROM issue i LEFT OUTER JOIN measure m ON i.issueno = m.issueno 
+		JOIN project p ON i.projectno=p.projectno JOIN task t ON i.taskno=t.taskno JOIN emp e ON i.empno=e.empno
+		LEFT OUTER JOIN emp e2 ON e2.empno=m.empno 
+		LEFT OUTER JOIN measurecode mc ON mc.codeno=i.codeno WHERE i.issueno=#{no}	
+	</select>
+	<!-- <select id="getIssue" resultType="issue" parameterType="int">
+		SELECT i.issueno,p.pname, t.title tname, e.name, i.regdate, i.title,i.content,e2.name mname, 
+		m.title mtitle, m.content mcontent,m.measuredate, i.state,i.projectno,i.taskno,m.measureno,i.codeno 
+		FROM issue i LEFT OUTER JOIN measure m ON i.issueno = m.issueno 
+		JOIN project p ON i.projectno=p.projectno JOIN task t ON i.taskno=t.taskno JOIN emp e ON i.empno=e.empno
+		LEFT OUTER JOIN emp e2 ON e2.empno=m.empno WHERE i.issueno=#{no}	
+	</select> -->
+	
+
+	
+	<select id="getIssue2" resultType="issue" parameterType="int">
+		SELECT i.issueno,p.pname, t.title tname, e.name, i.regdate, i.title,i.content,e2.name mname, 
+		m.title mtitle, m.content mcontent,m.measuredate, i.state,i.projectno,i.taskno,m.measureno,
+		i.codeno codeno,mc.name codename,mc.div codediv,mc.etc codeetc  
+		FROM issue i LEFT OUTER JOIN measure m ON i.issueno = m.issueno 
+		JOIN project p ON i.projectno=p.projectno JOIN task t ON i.taskno=t.taskno JOIN emp e ON i.empno=e.empno
+		LEFT OUTER JOIN emp e2 ON e2.empno=m.empno 
+		LEFT OUTER JOIN measurecode mc ON mc.codeno=i.codeno WHERE i.issueno=#{no}		
+	</select>
+	<select id="plist" resultMap="issueResult" parameterType="isch">
+		SELECT DISTINCT p.projectno,p.pname,p.startdate FROM project p,MEMBER m, issue i
+		WHERE p.projectno=m.projectno AND i.empno=m.empno AND i.empno like '%'||#{memempno,jdbcType=INTEGER}||'%' ORDER BY startdate DESC
+	</select>
+	<select id="plist0" resultMap="issueResult" parameterType="isch">
+		SELECT DISTINCT p.projectno,p.pname,p.startdate FROM project p,MEMBER m, issue i
+		WHERE p.projectno=m.projectno AND i.empno = m.empno AND i.empno like '%'||#{memempno,jdbcType=INTEGER}||'%' 
+		AND p.state='진행' ORDER BY startdate DESC
+	</select>
+	<select id="plist2" resultMap="issueResult" parameterType="isch">
+		SELECT p.projectno,p.pname FROM project p 
+		WHERE p.empno LIKE '%'||#{memempno,jdbcType=INTEGER}||'%' ORDER BY startdate DESC
+	</select>
+	<select id="plist3" resultMap="issueResult" >
+		SELECT p.projectno,p.pname FROM project p ORDER BY startdate DESC
+	</select>
+	
+	<select id="tlist" resultMap="issueResult" parameterType="isch">
+		SELECT t.taskno taskno, t.title tname FROM task t
+		WHERE t.projectno like '%'||#{projectno}||'%' AND t.empno like '%'||#{memempno}||'%' ORDER BY t.taskno DESC
+	</select>
+	
+	<select id="getproject" resultType="issue" parameterType="isch">
+		SELECT projectno, pname FROM project WHERE projectno=#{projectno} ORDER BY projectno DESC
+	</select>
+	
+		
+ 	<resultMap type="String" id="strMap"/> 
+ 	<select id="fnames" resultMap="strMap" parameterType="int">
+ 		SELECT fname 
+ 		FROM issuefile		
+ 		WHERE issueno=#{no,jdbcType=INTEGER}
+ 	</select> 		
+ 	<select id="fnames2" resultMap="strMap" parameterType="int">
+ 		SELECT fname 
+ 		FROM measurefile		
+ 		WHERE measureno=#{no2,jdbcType=INTEGER}
+ 	</select> 		
+	
+	
+ 	<insert id="insert" parameterType="issue">
+	 	INSERT INTO issue (issueno,projectno,taskno,empno,regdate,title,content,state) VALUES(issue_seq.nextval,#{projectno},#{taskno},
+	 				#{empno},sysdate,#{title},#{content},'조치대기')	 				
+ 	</insert>
+ 	
+ 	<insert id="insertRepo" parameterType="String"> 
+ 		INSERT INTO issuefile VALUES(issue_seq.currval,#{fname},sysdate,sysdate)
+	</insert>
+ 	
+ 	<insert id="insertMeasure" parameterType="issue">
+ 		INSERT INTO measure VALUES (measure_seq.nextval,#{issueno},#{mempno},sysdate,sysdate,#{mtitle},#{mcontent})
+ 	</insert>
+ 	<insert id="insertRepo2" parameterType="String"> 
+ 		INSERT INTO measurefile VALUES(measure_seq.currval,#{fname},sysdate,sysdate)
+	</insert> 	
+	
+	
+ 	<insert id="insertMeasure2" parameterType="issue">
+ 		INSERT INTO measure VALUES (measure_seq.nextval,#{issueno},#{mempno},sysdate,null,#{mtitle},#{mcontent})
+ 	</insert>
+ 	
+ 	<update id="uptIssueState" parameterType="issue">
+ 		UPDATE issue SET state=#{state},codeno=#{measurecode} where issueno=#{issueno}
+ 	</update>
+ 	<update id="uptIssueState2" parameterType="issue">
+ 		UPDATE issue SET state='조치진행' where issueno=#{issueno}
+ 	</update>
+ 	
+ 	<update id="updateIssue" parameterType="issue">
+ 		UPDATE issue SET title = #{title},content=#{content} where issueno=#{issueno}
+ 	</update>
+ 	
+ 	<update id="updateMeasure" parameterType="issue">
+		UPDATE measure SET title = #{mtitle},content=#{mcontent} WHERE measureno=#{measureno} 	
+ 	</update>
+ 	<update id="updateMeasure2" parameterType="issue">
+		UPDATE measure SET measuredate=sysdate WHERE measureno=#{measureno} 	
+ 	</update>
+ 	
+ 	<delete id="deleteIssue" parameterType="issue">
+ 		DELETE FROM issue where issueno=#{issueno}
+ 	</delete>
+ 	<delete id="deleteFile" parameterType="issue">
+		DELETE FROM issuefile
+		 WHERE issueno = #{issueno}
+ 	</delete>
+ 	<delete id="deleteMeasure" parameterType="issue">
+ 		DELETE FROM measure where issueno=#{measureno}
+ 	</delete>
+ 	<delete id="deleteFile2" parameterType="issue">
+		DELETE FROM measurefile
+		 WHERE measureno = #{measureno}
+ 	</delete>
+ 	
+ 	
+  	<update id="uptFileInfo" parameterType="java.util.HashMap">
+		UPDATE issuefile
+			SET fname = #{tar},
+	        uptdate= sysdate
+	    WHERE issueno = ${no}
+		AND fname = #{org}	    	
+	</update> 	
+ 	<insert id="insFileInfo" parameterType="java.util.HashMap"> 
+ 		insert into issuefile values(${no}, 
+ 			#{tar}, sysdate, sysdate)
+	</insert> 	
+  	<update id="uptFileInfo2" parameterType="java.util.HashMap">
+		UPDATE measurefile
+			SET fname = #{tar},
+	        uptdate= sysdate
+	    WHERE measureno = ${no}
+		AND fname = #{org}	    	
+	</update> 	
+ 	<insert id="insFileInfo2" parameterType="java.util.HashMap"> 
+ 		insert into measurefile values(${no}, 
+ 			#{tar}, sysdate, sysdate)
+	</insert> 	
+	
+ 	
+<select id="list2" resultMap="issueResult" parameterType="isch">
+		SELECT * FROM(
+			SELECT rownum cnt,a.*
+			FROM (SELECT i.issueno,p.pname, t.title tname, e.name, i.regdate, i.title,i.content,e2.name mname, 
+					m.title mtitle, m.content mcontent,m.measuredate, i.state,i.projectno,i.taskno,m.measureno 
+					FROM issue i LEFT OUTER JOIN measure m ON i.issueno = m.issueno 
+					JOIN project p ON i.projectno=p.projectno JOIN task t ON i.taskno=t.taskno 
+					JOIN emp e ON i.empno=e.empno
+					LEFT OUTER JOIN emp e2 ON e2.empno=m.empno where p.state='진행' 
+					<if test="empno!=null and empno!=''">
+					and i.empno=#{empno}
+					</if>
+			ORDER BY i.issueno DESC ) a ) 
+	</select> 	
+	<select id="getIssue3" resultMap="issueResult2" parameterType="int">
+		SELECT i.issueno,p.pname, t.title tname, e.name, i.regdate, i.title,i.content,e2.name mname, 
+		m.title mtitle, m.content mcontent,m.measuredate, i.state,i.projectno,i.taskno,m.measureno,
+		i.codeno codeno,mc.name codename,mc.div codediv,mc.etc codeetc,m.empno mempno 
+		FROM issue i LEFT OUTER JOIN measure m ON i.issueno = m.issueno 
+		JOIN project p ON i.projectno=p.projectno JOIN task t ON i.taskno=t.taskno JOIN emp e ON i.empno=e.empno
+		LEFT OUTER JOIN emp e2 ON e2.empno=m.empno 
+		LEFT OUTER JOIN measurecode mc ON mc.codeno=i.codeno WHERE i.issueno=#{no}	
+	</select>	
+	<select id="totYearListJson" resultMap="projectResult" parameterType="psch">
+	SELECT * FROM(
+	SELECT rownum cnt,a.*
+	FROM (SELECT to_char(enddate,'yyyy') enddate, count(*) count
+		FROM project
+		GROUP BY to_char(enddate,'yyyy')
+		ORDER BY enddate ASC ) a )
+	</select>
+	
+ <select id="latestprojectno" resultMap="projectResult">
+		SELECT * FROM 
+		(SELECT projectno FROM project
+			ORDER BY startdate DESC)
+		WHERE ROWNUM &lt;= 1
+ 
+ </select>	
+ 	
+</mapper>

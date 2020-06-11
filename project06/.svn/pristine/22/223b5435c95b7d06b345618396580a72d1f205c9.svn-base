@@ -1,0 +1,803 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >	
+<mapper namespace="project06.mvc.repository.YunbaeRep">
+	<resultMap type="project" id="projectResult"></resultMap>
+	<!-- 프로젝트 목록 뽑기 -->
+	<select id="getProjectList" parameterType="project" resultMap="projectResult">
+		SELECT * FROM 
+		(SELECT ROWNUM cnt, a.* FROM 
+		(SELECT  p.projectno, p.pname, k.kname kname, e.name name, p.personnel,
+		p.budget,to_char(p.startdate,'YYYY-MM-DD') startdate,
+		to_char(p.enddate,'YYYY-MM-DD') enddate, p.state 
+		FROM project p, kind k, emp e
+		WHERE p.empno = e.empno AND p.kindno=k.kindno AND p.empno= #{empno}
+		ORDER BY CASE WHEN state='진행' THEN 0 END , startdate DESC) a)
+		WHERE cnt BETWEEN #{start} AND #{end}
+		
+	</select>
+	
+	<select id="totCnt" resultType="int">
+		SELECT COUNT(*) FROM PROJECT
+	</select>
+	
+	<resultMap type="kind" id="kindResult"></resultMap>
+	<select id="getKindList" resultMap="kindResult">
+		SELECT KINDNO, KNAME FROM KIND
+	</select>
+	
+	<insert id="insertProject" parameterType="project">
+		INSERT INTO PROJECT 
+		VALUES(project_seq.nextval, #{kindno}, #{pname}, #{empno}, #{personnel}, #{budget}, 
+		to_date(#{startdate},'YYYY-MM-DD'), to_date(#{enddate},'YYYY-MM-DD'), 0,'gantt.config.types.project',1, '진행')
+	</insert>
+	
+	<insert id="pmInsert" parameterType="project">
+		INSERT INTO "MEMBER" VALUES (#{empno}, project_seq.currval, 1,'#b8daff','#FFF',sysdate)
+	</insert>
+	
+	<!-- 프로젝트 상세페이지 데이터 -->
+	<resultMap type="project" id="detailResult"></resultMap>	
+	<select id="getDetail" parameterType="int" resultMap="detailResult">
+		SELECT p.PROJECTNO, p.PNAME, p.kindno, k.KNAME, e.NAME, p.empno, 
+		to_char(p.STARTDATE,'YYYY-MM-DD') startdate, to_char(p.ENDDATE,'YYYY-MM-DD') enddate, p.PERSONNEL, p.BUDGET, p.STATE 
+		FROM PROJECT p, KIND k, EMP e
+		WHERE p.EMPNO = e.EMPNO AND p.KINDNO = k.KINDNO AND p.PROJECTNO = #{projectno}
+	</select>
+	
+	<!-- 안드로이드용 Json데이터 -->
+	<resultMap type="projectj2" id="detailJsonResult"></resultMap>	
+	<select id="getDetail2" parameterType="int" resultMap="detailJsonResult">
+		SELECT p.PROJECTNO, p.PNAME, p.kindno, k.KNAME, e.NAME, p.empno, 
+		to_char(p.STARTDATE,'YYYY-MM-DD') startdate, to_char(p.ENDDATE,'YYYY-MM-DD') enddate, p.PERSONNEL, p.BUDGET, p.STATE 
+		FROM PROJECT p, KIND k, EMP e
+		WHERE p.EMPNO = e.EMPNO AND p.KINDNO = k.KINDNO AND p.PROJECTNO = #{projectno}
+	</select>
+	
+	<resultMap type="member" id="memResult"></resultMap>
+	<select id="getMemList" parameterType="member" resultMap="memResult">
+		SELECT * FROM 
+		(SELECT rownum cnt, e.EMPNO, e.NAME, to_char(m.REGDATE,'YYYY-MM-DD') REGDATE, r.RNAME
+		FROM MEMBER m, EMP e, ROLE r
+		WHERE m.EMPNO = e.EMPNO 
+		AND m.ROLENO = r.ROLENO
+		AND PROJECTNO = #{projectno})
+		WHERE cnt BETWEEN #{start} AND #{end}
+	</select>
+	<select id="getMemList2" parameterType="member" resultMap="memResult">
+		SELECT e.EMPNO, e.NAME, to_char(m.REGDATE,'YYYY-MM-DD') REGDATE, r.RNAME
+		FROM MEMBER m, EMP e, ROLE r
+		WHERE m.EMPNO = e.EMPNO 
+		AND m.ROLENO = r.ROLENO
+		AND PROJECTNO = #{projectno}
+	</select>
+	<select id="totMem" parameterType="member" resultType="int">
+		SELECT COUNT(*) FROM "MEMBER" WHERE PROJECTNO = #{projectno}
+	</select>
+	
+	<update id="updateProject" parameterType="project">
+		UPDATE PROJECT SET PNAME = #{pname}, KINDNO = #{kindno}, EMPNO = #{empno}, PERSONNEL = #{personnel},
+		BUDGET = #{budget}, STARTDATE = TO_DATE(#{startdate},'YYYY-MM-DD'), ENDDATE = TO_DATE(#{enddate},'YYYY-MM-DD'),
+		state = #{state}
+		WHERE PROJECTNO = #{projectno}
+	</update>
+	
+	<select id="getJosnList" resultType="projectj" parameterType="String">
+		SELECT PROJECTNO, PNAME, PROGRESS, STATE FROM PROJECT
+		WHERE EMPNO = #{empno}
+		ORDER BY decode(state,'진행',0), enddate desc
+	</select>
+	
+	<select id="gantList" resultType="gantt" parameterType="int">
+		SELECT p.PROJECTNO id, p.PNAME text, p."TYPE", to_char(p.STARTDATE,'DD-MM-YYYY') start_date, 
+		(p.ENDDATE-p.STARTDATE) duration,
+		p.PROGRESS progress, p."OPEN",e.NAME "users", p.EMPNO owner_id
+		FROM PROJECT p, EMP e 
+		WHERE p.EMPNO = e.EMPNO
+		AND p.PROJECTNO = #{projectno}
+	</select>
+	
+	<!-- 내가 참여중인, 진행중인 프로젝트 뽑기 -->	
+	<select id="myProjectList" resultType="gantt" parameterType="int">
+		SELECT p.PROJECTNO id, p.PNAME text, p."TYPE", to_char(p.STARTDATE,'DD-MM-YYYY') start_date, 
+		(p.ENDDATE-p.STARTDATE) duration,
+		p.PROGRESS progress, p."OPEN", '['''||e.NAME||''']' "users"
+		FROM PROJECT p, EMP e, 
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE p.EMPNO = e.EMPNO
+		AND m.PROJECTNO = p.PROJECTNO
+	</select>	
+	
+	<!-- 프로젝트 상위작업 뽑기 -->
+	<select id="gantPTaskList" resultType="gantt" parameterType="int">
+		(SELECT t.TASKNO id, t.TITLE text, t."TYPE", to_char(t.P_STARTDATE,'DD-MM-YYYY') start_date, 
+		(t.P_ENDDATE-t.P_STARTDATE) duration,
+		t.PROGRESS progress, t."OPEN", e.NAME "users", 
+		t.PROJECTNO parent, t.PRIORITY priority, t.EMPNO owner_id
+		FROM TASK t, EMP e
+		WHERE t.EMPNO = e.EMPNO(+)
+		AND t.REFNO =0
+		AND t.PROJECTNO = #{projectno})
+		UNION ALL
+		(SELECT t.TASKNO id, t.TITLE text, t."TYPE", to_char(t.P_STARTDATE,'DD-MM-YYYY') start_date, 
+		(t.P_ENDDATE-t.P_STARTDATE) duration,
+		t.PROGRESS progress, t."OPEN", e.NAME "users", 
+		t.REFNO parent, t.PRIORITY priority, t.EMPNO owner_id
+		FROM TASK t, EMP e
+		WHERE t.EMPNO = e.EMPNO(+)
+		AND t.REFNO !=0
+		AND t.PROJECTNO = #{projectno})
+		ORDER BY id
+	</select>
+	
+	<!-- 내 작업 상위작업 뽑기 -->
+	<select id="myPTaskList" resultType="gantt" parameterType="String">
+		SELECT t.TASKNO id, t.TITLE text, to_char(t.P_STARTDATE,'DD-MM-YYYY') 
+		start_date, (t.P_ENDDATE-t.P_STARTDATE) duration,
+		t.PROGRESS progress, t."OPEN", '['''||e.NAME||''']' "users", t.projectno parent, 
+		t.PRIORITY priority, t.EMPNO owner_id
+		FROM TASK t, EMP e, (SELECT TASKNO, REFNO FROM TASK WHERE EMPNO = #{empno}) c,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.EMPNO = e.EMPNO(+)
+		AND t.PROJECTNO = m.PROJECTNO 
+		AND t.TASKNO = c.REFNO
+		AND t.EMPNO != #{empno}
+	</select>
+	<!-- 프로젝트 하위 작업뽑기 -->
+	<select id="gantCTaskList" resultType="gantt" parameterType="int">
+		SELECT t.TASKNO id, t.TITLE text, to_char(t.P_STARTDATE,'DD-MM-YYYY') start_date, 
+		(t.P_ENDDATE-t.P_STARTDATE) duration,
+		t.PROGRESS progress, t."OPEN", e.NAME "users", 
+		t.REFNO parent, t.PRIORITY priority, t.EMPNO owner_id
+		FROM TASK t, EMP e
+		WHERE t.EMPNO = e.EMPNO(+)
+		AND t.REFNO !=0
+		AND t.PROJECTNO = #{projectno}
+	</select>
+	<!-- 내 담당작업 뽑기 -->
+	<select id="myCTaskList" resultType="gantt" parameterType="int">
+		SELECT t.TASKNO id, t.TITLE text, to_char(t.P_STARTDATE,'DD-MM-YYYY') 
+		start_date, (t.P_ENDDATE-t.P_STARTDATE) duration,
+		t.PROGRESS progress, t."OPEN", '['''||e.NAME||''']' "users", 
+		t.PRIORITY priority, t.EMPNO owner_id,
+		CASE t.REFNO WHEN 0 THEN t.PROJECTNO ELSE t.REFNO END "parent"
+		FROM TASK t, EMP e,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.EMPNO = e.EMPNO(+)
+		AND t.PROJECTNO = m.PROJECTNO 
+		AND t.EMPNO = #{empno}
+	</select>
+	
+	<select id="ganttMemList" resultType="ganttM" parameterType="int">
+		SELECT m.EMPNO "key", e.NAME "label", 
+		m.BACKGROUNDCOLOR "backgroundColor", m.TEXTCOLOR "textColor" 
+		FROM "MEMBER" m, EMP e 
+		WHERE m.EMPNO = e.EMPNO
+		AND m.PROJECTNO = #{projectno}
+	</select>
+	
+	<select id="getTaskList" resultType="task" parameterType="int">
+		SELECT * FROM TASK
+		WHERE PROJECTNO = #{projectno}
+	</select>
+	
+	<insert id="insertTask" parameterType="task">
+		INSERT INTO TASK VALUES(#{projectno}||LPAD(task_seq.nextval,4,0), #{projectno}, #{refno},
+		#{title}, 
+		<if test="empno==''">
+		NULL,
+		</if>
+		<if test="empno!=null and empno!=''">
+		#{empno},
+		</if> 
+		#{content},
+		<if test="empno==''">
+		NULL,
+		</if>
+		<if test="empno!=null and empno!=''">
+		sysdate,
+		</if>
+		to_date(#{p_startdate},'YYYY-MM-DD'),
+		to_date(#{p_enddate},'YYYY-MM-DD'),	NULL, NULL, 0, NULL, NULL, NULL, NULL,
+		NULL, #{open}, #{priority}, #{state})
+	</insert>
+	
+	<select id="getTask" resultType="task" parameterType="int">
+		SELECT TASKNO, PROJECTNO, REFNO, TITLE, REFNO, EMPNO, 
+		CONTENT, to_char(ASSIGNDATE,'YYYY-MM-DD') ASSIGNDATE, 
+		to_char(P_STARTDATE,'YYYY-MM-DD') P_STARTDATE, to_char(P_ENDDATE,'YYYY-MM-DD') P_ENDDATE, 
+		PROGRESS, "TYPE", "OPEN", PRIORITY, STATE
+		FROM TASK
+		WHERE TASKNO = #{taskno}
+	</select>
+	
+	<update id="updateTask" parameterType="task">
+		UPDATE TASK SET REFNO = #{refno}, TITLE = #{title}, 
+		CONTENT = #{content}, P_STARTDATE = TO_DATE(#{p_startdate},'YYYY-MM-DD'),
+		P_ENDDATE = TO_DATE(#{p_enddate},'YYYY-MM-DD'), 
+		PRIORITY = #{priority}, 
+		<if test="empno==''">
+		EMPNO = NULL,
+		</if>
+		<if test="empno!=null and empno!=''">
+		EMPNO = #{empno},
+		</if> 
+		<if test="assigndate=='' or assigndate==null">
+		ASSIGNDATE = NULL,
+		</if>
+		<if test="assigndate=='sysdate'">
+		ASSIGNDATE = sysdate,
+		</if>
+		<if test="state!=null and state!=''">
+		STATE = #{state}
+		</if> 
+		"TYPE" = #{type}
+		WHERE TASKNO = #{taskno}
+	</update>
+	
+	<!-- 업무 삭제 -->
+	<delete id="deleteTask" parameterType="task">
+		DELETE FROM TASK WHERE TASKNO = #{taskno} AND PROJECTNO = #{projectno}
+	</delete>
+	
+	<!-- 멤버 변경 참여가능한 사원목록 -->
+	<select id="getJoinableEmp" resultType="emp" parameterType="emp">
+		SELECT e.EMPNO, d.DNAME, e.DEPTNO, r.RNAME, e.NAME 
+		FROM 
+		(SELECT e.EMPNO, e.NAME, e.RANKNO, e.DEPTNO 
+		FROM EMP e LEFT OUTER JOIN 
+		(SELECT m.* 
+		FROM MEMBER m, Project p 
+		WHERE m.PROJECTNO = p.PROJECTNO AND p.ENDDATE>SYSDATE) m
+		ON e.EMPNO = m.EMPNO
+		WHERE m.EMPNO IS NULL ) e,
+		DEPT d, EMPRANK r 
+		WHERE e.DEPTNO = d.DEPTNO 
+		AND e.RANKNO = r.RANKNO
+		AND e.EMPNO != 'admin'
+		<if test="name!=null and name!=''">
+		AND e.NAME LIKE '%'||#{name}||'%'
+		</if>
+		<if test="deptno!=0 and deptno!=null">
+		AND e.DEPTNO = #{deptno}
+		</if>
+		ORDER BY e.DEPTNO, e.RANKNO DESC
+	</select>
+	
+	<!-- 멤버 목록  -->
+	<select id="getMemberInfo" parameterType="int" resultType="member">
+		SELECT m.EMPNO, e.NAME, d.DNAME, er.RNAME, r.RNAME "ROLE", to_char(m.REGDATE,'YYYY-MM-DD') regdate
+		FROM MEMBER m, EMP e, DEPT d, EMPRANK er, "ROLE" r
+		WHERE m.EMPNO = e.EMPNO 
+		AND e.DEPTNO = d.DEPTNO 
+		AND e.RANKNO = er.RANKNO
+		AND m.ROLENO = r.ROLENO 
+		AND m.PROJECTNO = #{projectno}
+		ORDER BY m.ROLENO
+	</select>
+	
+	<select id="getRoleList" resultType="role">
+		SELECT * FROM ROLE
+	</select>
+	
+	<insert id="insertMember" parameterType="member">
+		INSERT INTO "MEMBER" 
+		VALUES(#{empno}, #{projectno}, #{roleno}, #{backgroundcolor}, #{textcolor}, sysdate)
+	</insert>
+	
+	<delete id="deleteMember" parameterType="member">
+		DELETE FROM "MEMBER" WHERE EMPNO = #{empno} AND PROJECTNO = #{projectno}	
+	</delete>
+	
+	<!-- 내가 참여중인, 진행중인 프로젝트 정보  -->	
+	<select id="getMyDetail" parameterType="emp" resultMap="detailResult">
+		SELECT p.PROJECTNO, p.PNAME, p.kindno, k.KNAME, e.NAME, p.empno, p.progress,
+		to_char(p.STARTDATE,'YYYY-MM-DD') startdate, to_char(p.ENDDATE,'YYYY-MM-DD') enddate, p.PERSONNEL, p.BUDGET, p.STATE 
+		FROM PROJECT p, KIND k, EMP e,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE p.EMPNO = e.EMPNO AND p.KINDNO = k.KINDNO AND p.PROJECTNO = m.projectno
+	</select>
+	
+	<!-- 참여중인 프로젝트 게시판 공지리스트 -->
+	<select id="getMyProjectBoard" resultType="board" parameterType="String">
+		SELECT PJBOARDNO, TITLE, CREDATE FROM 
+		(SELECT rownum cnt, b.PJBOARDNO, b.TITLE, b.CREDATE 
+		FROM PJBOARD b,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE b.PROJECTNO = m.PROJECTNO 
+		AND b.NOTICETYPE = 'Y'
+		ORDER BY CREDATE DESC)
+		WHERE CNT &lt; =6
+	</select>
+	<!-- 부서정보 불러오기 -->
+	<select id="getDeptInfo" resultType="dept">
+		SELECT DEPTNO, DNAME FROM DEPT
+	</select>
+	<!-- 개인대시보드 정보 불러오기 -->
+	<!-- 내게 배정된 작업 -->
+	<select id="getMyTaskCount" resultType="int" parameterType="String">
+		SELECT COUNT(*) 
+		FROM TASK t,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.PROJECTNO = m.PROJECTNO 
+		AND t.EMPNO = #{empno}
+	</select>
+	<!-- 승인 완료된 작업 -->
+	<select id="getConfirmedCount" resultType="int" parameterType="String">
+		SELECT COUNT(*) 
+		FROM TASK t,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.PROJECTNO = m.PROJECTNO 
+		AND t.EMPNO = #{empno}
+		AND t.STATE = '승인완료'
+	</select>
+	<!-- 지연된 작업 -->
+	<select id="getDelayedCount" resultType="int" parameterType="String">
+		SELECT COUNT(*) 
+		FROM TASK t,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.PROJECTNO = m.PROJECTNO 
+		AND t.EMPNO = #{empno}
+		AND t.P_ENDDATE &lt; SYSDATE 
+		AND t.STATE != '승인완료'
+	</select>
+	<!-- 조치완료된 이슈 -->
+	<select id="getMeasuredCount" resultType="int" parameterType="String">
+		SELECT COUNT(*) 
+		FROM ISSUE i,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE i.EMPNO = #{empno}
+		AND i.PROJECTNO = m.PROJECTNO
+		AND i.STATE = '조치완료'
+	</select>
+	<!-- 진행중인 작업 -->
+	<select id="getGoingCount" resultType="int" parameterType="String">
+		SELECT COUNT(*) 
+		FROM TASK t,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.PROJECTNO = m.PROJECTNO 
+		AND t.EMPNO = #{empno}
+		AND t.STATE = '배정완료'
+	</select>
+	<!-- 승인 대기중 -->
+	<select id="getWaitCount" resultType="int" parameterType="String">
+		SELECT COUNT(*) 
+		FROM TASK t,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.PROJECTNO = m.PROJECTNO 
+		AND t.EMPNO = #{empno}
+		AND t.STATE = '승인대기'
+	</select>
+	<!-- 반려된 작업 -->
+	<select id="getRejectCount" resultType="int" parameterType="String">
+		SELECT COUNT(*) 
+		FROM TASK t,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.PROJECTNO = m.PROJECTNO 
+		AND t.EMPNO = #{empno}
+		AND t.STATE = '반려'
+	</select>
+	<!-- 작업관리 리스트 -->
+	<select id="getTaskManageList" parameterType="String" resultType="task">
+		SELECT t.PROJECTNO, t.TASKNO, t.TITLE title, m.PNAME, 
+		t.PRIORITY, to_char(t.P_STARTDATE,'YYYY-MM-DD') P_STARTDATE, to_char(t.P_ENDDATE,'YYYY-MM-DD') P_ENDDATE, nvl(t.r_comments,'없음') r_comments,
+		to_char(t.T_STARTDATE,'YYYY-MM-DD') T_STARTDATE, to_char(t.T_ENDDATE,'YYYY-MM-DD') T_ENDDATE, t.PROGRESS, 
+		to_char(t.R_CONDATE,'YYYY-MM-DD') R_CONDATE, to_char(t.CONDATE,'YYYY-MM-DD') CONDATE, t.STATE, nvl(t.comments,'없음') comments, NVL(rf.FNAME,'없음') fname
+		FROM TASK t, TASK t2, RESULT_FILE rf, 
+		(SELECT p.PROJECTNO, p.PNAME 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.REFNO = t2.TASKNO(+)
+		AND t.PROJECTNO = m.PROJECTNO
+		AND t.EMPNO = #{empno}
+		AND rf.TASKNO(+) = t.TASKNO 
+		ORDER BY t.P_ENDDATE DESC
+	</select>
+	<select id="getTaskDetail" parameterType="task" resultType="task">
+		SELECT t.TASKNO, t.projectno, t.TITLE title, t2.TITLE reftitle, t.CONTENT, 
+		to_char(t.assigndate,'YYYY-MM-DD') assigndate,
+		t.PRIORITY, to_char(t.P_STARTDATE,'YYYY-MM-DD') P_STARTDATE, 
+		to_char(t.P_ENDDATE,'YYYY-MM-DD') P_ENDDATE, 
+		to_char(t.T_STARTDATE,'YYYY-MM-DD') T_STARTDATE, to_char(t.T_ENDDATE,'YYYY-MM-DD') 
+		T_ENDDATE, t.PROGRESS, 
+		to_char(t.R_CONDATE,'YYYY-MM-DD') R_CONDATE, to_char(t.CONDATE,'YYYY-MM-DD') CONDATE, 
+		t.STATE, e.NAME, r.rname, nvl(t.comments,'없음') comments, nvl(t.r_comments,'없음') r_comments
+		FROM TASK t, TASK t2,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m, EMP e,"MEMBER" m2, "ROLE" r
+		WHERE t.REFNO = t2.TASKNO(+)
+		AND t.PROJECTNO = m.PROJECTNO
+		AND t.EMPNO = #{empno}
+		AND t.EMPNO = e.EMPNO
+		AND m2.PROJECTNO = t.PROJECTNO
+		AND t.EMPNO = m2.EMPNO
+		AND m2.roleno = r.roleno
+		AND t.TASKNO = #{taskno}
+		ORDER BY TASKNO
+	</select>
+	
+	<!-- 분할 작업 등록 -->
+	<insert id="taskDivInsert" parameterType="task_D">
+		INSERT INTO TASK_DIVISION VALUES 
+		(5000||LPAD(task_division_seq.nextval,4,0),#{taskno},#{projectno},#{title},
+		to_date(#{startdate},'YYYY-MM-DD'),to_date(#{enddate},'YYYY-MM-DD'),0,#{etc})
+	</insert>
+	<!-- 분할작업 불러오기 -->
+	<select id="getDivList" parameterType="task" resultType="task_D">
+		SELECT td.DIVNO, td.TASKNO, td.PROJECTNO, td.TITLE, 
+		to_char(td.STARTDATE,'YYYY-MM-DD') startdate, 
+		to_char(td.ENDDATE,'YYYY-MM-DD') enddate, td.PROGRESS, NVL(td.ETC,'없음') etc,
+		NVL(df.FNAME,'없음') fname
+		FROM TASK_DIVISION td, DIV_FILE df
+		WHERE td.TASKNO = #{taskno} 
+		AND td.PROJECTNO = #{projectno}
+		AND td.TASKNO = df.TASKNO(+)
+		AND td.PROJECTNO = df.PROJECTNO(+)
+		AND td.DIVNO = df.DIVNO(+)
+		ORDER BY td.DIVNO
+		
+	</select>
+	<!-- 분할작업 수정 -->
+	<update id="taskDivUpdate" parameterType="task">
+		UPDATE TASK_DIVISION SET title=#{title}, 
+		startdate= to_date(#{startdate},'YYYY-MM-DD'), 
+		enddate= to_date(#{enddate},'YYYY-MM-DD'), etc=#{etc} 
+		WHERE taskno=#{taskno} AND projectno=#{projectno} AND divno = #{divno}
+	</update>
+	<!-- 분학작업 삭제 -->
+	<delete id="taskDivDelete" parameterType="task">
+		DELETE FROM TASK_DIVISION 
+		WHERE DIVNO = #{divno} AND TASKNO = #{taskno} AND PROJECTNO = #{projectno}
+	</delete>
+	<!-- 파일 정보 인서트 -->
+ 	<insert id="insertRepo" parameterType="task_D"> 		
+		INSERT INTO div_file 
+		values(#{taskno}, #{projectno}, #{divno}, #{fname}, sysdate, 0, sysdate)
+ 	</insert>
+ 	<!-- 파일정보 수정 -->
+ 	<update id="uptFileInfo" parameterType="java.util.HashMap">
+		UPDATE div_file
+		SET fname = #{tar},
+	    uptdate= sysdate
+	    WHERE TASKNO = ${taskno}
+	    AND PROJECTNO = ${projectno}
+	    AND DIVNO = ${divno}
+		AND fname = #{org}	    	
+	</update> 
+ 	<!-- 분할작업 진행률 업데이트 -->
+ 	<update id="taskDivProgressUpdate" parameterType="task_D">
+ 		UPDATE TASK_DIVISION SET PROGRESS = #{progress} 
+ 		WHERE taskno=#{taskno} AND projectno=#{projectno} AND divno = #{divno}
+ 	</update>
+ 	<!-- 분할작업 전체 진행률 -->
+ 	<select id="taskDivProgressCount" resultType="task_D" parameterType="task">
+ 		SELECT ROUND(SUM(td.PROGRESS)/COUNT(*),2) divprogress, COUNT(*) divcnt
+		FROM TASK_DIVISION td,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE td.taskno=#{taskno} 
+		AND td.PROJECTNO = m.PROJECTNO 
+ 	</select>
+ 	
+	<!-- 업무 승인신청 -->
+	<update id="taskConfirm" parameterType="task">
+		UPDATE TASK 
+		SET R_COMMENTS=#{r_comments}, STATE = '승인대기', R_CONDATE = SYSDATE  	
+		WHERE TASKNO = #{taskno}
+	</update>
+	<!-- 파일 정보 인서트 -->
+ 	<insert id="insertResultRepo" parameterType="task"> 		
+		INSERT INTO RESULT_FILE 
+		values(#{projectno}, #{taskno}, #{fname}, 0, sysdate, sysdate)
+ 	</insert>
+ 	<!-- 파일정보 수정 -->
+ 	<update id="uptResultRepo" parameterType="java.util.HashMap">
+		UPDATE result_file 
+		SET fname = #{tar},
+	    uptdate= sysdate
+	    WHERE TASKNO = ${taskno}
+	    AND PROJECTNO = ${projectno}
+		AND fname = #{org}	    	
+	</update> 
+ 	<!-- 승인 대기 목록 불러오기 -->
+ 	<select id="getReqConfirmList" resultType="task" parameterType="String">
+ 		SELECT  t.projectno, m.PNAME, t.TASKNO, t.TITLE, e.NAME,
+		t.PRIORITY, to_char(t.P_STARTDATE,'YYYY-MM-DD') P_STARTDATE, to_char(t.P_ENDDATE,'YYYY-MM-DD') P_ENDDATE, 
+		to_char(t.T_STARTDATE,'YYYY-MM-DD') T_STARTDATE, to_char(t.T_ENDDATE,'YYYY-MM-DD') T_ENDDATE, t.PROGRESS, 
+		to_char(t.R_CONDATE,'YYYY-MM-DD') R_CONDATE, to_char(t.CONDATE,'YYYY-MM-DD') CONDATE, t.STATE, 
+		NVL(rf.FNAME,'없음') fname, t.R_COMMENTS
+		FROM TASK t, EMP e, RESULT_FILE rf,
+		(SELECT p.PROJECTNO, p.PNAME 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.PROJECTNO = m.PROJECTNO
+		AND t.EMPNO = e.EMPNO
+		AND rf.PROJECTNO(+) = t.PROJECTNO 
+		AND rf.TASKNO(+) = t.TASKNO 
+		AND t.STATE = '승인대기'
+		ORDER BY t.CONDATE
+ 	</select>
+ 	<!-- 앱 승인 대기 목록 -->
+ 	<select id="getReqConApp" parameterType="String" resultType="task">
+ 		SELECT t.TASKNO, t.TITLE, e.NAME, to_char(t.R_CONDATE,'YYYY-MM-DD') r_condate, 
+		nvl(t.R_COMMENTS,'없음') R_COMMENTS, t.STATE 
+		FROM TASK t, EMP e,
+		(SELECT p.PROJECTNO 
+		FROM PROJECT p, "MEMBER" m
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno}
+		AND p.STATE = '진행') m
+		WHERE t.EMPNO = e.EMPNO 
+		AND t.STATE = '승인대기'
+		AND t.PROJECTNO = m.PROJECTNO
+		ORDER BY t.R_CONDATE DESC
+ 	</select>
+ 	<!-- 업무 승인 처리 -->
+ 	<update id="confirmTask" parameterType="task">
+ 		UPDATE TASK 
+		SET STATE = '승인완료', PROGRESS = 1, CONDATE = SYSDATE, COMMENTS = #{comments}
+		WHERE TASKNO = #{taskno}
+ 	</update>
+ 	<!-- 업무 반려처리 -->
+ 	<update id="rejectTask" parameterType="task">
+ 		UPDATE TASK 
+		SET STATE = '반려', COMMENTS = #{comments}
+		WHERE TASKNO = #{taskno}
+ 	</update>
+ 	<!-- 상위업무 승인 처리 -->
+ 	<update id="confirmTask2" parameterType="task">
+ 		UPDATE TASK 
+		SET STATE = '승인완료', PROGRESS = 1, CONDATE = SYSDATE, R_CONDATE = SYSDATE
+		WHERE TASKNO = #{taskno}
+ 	</update>
+ 	<!-- 상위 업무 존재 확인 -->
+ 	<select id="searchRef" parameterType="int" resultType="int">
+ 		SELECT COUNT(*) 
+ 		FROM TASK t, TASK t2 
+ 		WHERE t.TASKNO = #{taskno}
+ 		AND t.REFNO = t2.TASKNO
+ 		AND t2.REFNO = 0
+ 	</select>
+ 	<!-- 상위 업무 확인 -->
+ 	<select id="searchRefTask" parameterType="int" resultType="int">
+ 		SELECT NVL(t2.TASKNO,0) TASKNO
+ 		FROM TASK t, TASK t2 
+ 		WHERE t.TASKNO = #{taskno} 
+ 		AND t.REFNO = t2.TASKNO
+ 		AND t2.REFNO = 0
+ 	</select>
+ 	<!-- 해당 업무의 하위업무 평균 진행률 확인 -->
+ 	<select id="avgChildTaskPro" parameterType="int" resultType="double">
+ 		SELECT AVG(PROGRESS) FROM TASK WHERE REFNO = #{taskno}
+ 	</select>
+ 	
+ 	<!-- 프로젝트 결과물 확인 -->
+ 	<select id="taskResultList" parameterType="int" resultType="task">
+ 		SELECT t.TITLE, e.NAME , t.CONTENT, to_char(t.R_CONDATE,'YYYY-MM-DD') R_CONDATE, 
+		to_char(t.CONDATE,'YYYY-MM-DD') CONDATE, NVL(rf.FNAME,'없음') fname
+		FROM TASK t, EMP e, RESULT_FILE rf
+		WHERE t.EMPNO = e.EMPNO
+		AND t.TASKNO = rf.TASKNO
+		AND t.PROJECTNO = #{projectno}
+		ORDER BY t.TASKNO DESC
+ 	</select>
+ 	
+ 	<!-- 스케쥴러 데이터 뽑기 -->
+ 	<select id="getScheduleList" parameterType="String" resultType="sche">
+ 		(SELECT p.PROJECTNO id, to_char(p.STARTDATE,'YYYY-MM-DD HH24:MI') start_date, 
+		to_char(p.ENDDATE,'YYYY-MM-DD HH24:MI') end_date, p.pname text, '' "subject", 1 "readonly"
+		FROM PROJECT p, MEMBER m
+		WHERE m.EMPNO = #{empno}
+		AND p.PROJECTNO = m.PROJECTNO)
+		UNION ALL 
+		(SELECT TASKNO id, to_char(P_STARTDATE,'YYYY-MM-DD HH24:MI') start_date, 
+		to_char(P_ENDDATE,'YYYY-MM-DD HH24:MI'), TITLE text, 'english' "subject", 1 "readonly"
+		FROM TASK
+		WHERE EMPNO =#{empno})
+		UNION ALL 
+		(SELECT td.DIVNO id, to_char(td.STARTDATE,'YYYY-MM-DD HH24:MI') start_date, 
+		to_char(td.ENDDATE,'YYYY-MM-DD HH24:MI') end_date, td.TITLE text, 'math' "subject", 1 "readonly"
+		FROM TASK_DIVISION td, TASK t
+		WHERE td.TASKNO = t.TASKNO 
+		AND t.EMPNO = #{empno})
+		UNION ALL 
+		(SELECT SCHENO id, to_char(START_DATE,'YYYY-MM-DD HH24:MI') start_date, 
+		to_char(END_DATE,'YYYY-MM-DD HH24:MI') end_date, TEXT text, 'science' "subject", 0 "readonly"
+		FROM SCHEDULE
+		WHERE EMPNO = #{empno})
+ 	</select>
+ 	
+ 	<!-- 일정테이블 insert -->
+ 	<insert id="insertSche" parameterType="sche">
+ 		INSERT INTO SCHEDULE 
+ 		VALUES(9000||LPAD(schedule_seq.nextval,4,0), #{empno}, #{text}, to_date(#{start_date},'YYYY-MM-DD HH24:MI'), to_date(#{end_date},'YYYY-MM-DD HH24:MI'))
+ 	</insert>
+ 	<!-- 일정테이블 update -->
+ 	<update id="updateSche" parameterType="sche">
+ 		UPDATE SCHEDULE
+ 		SET TEXT = #{text}, 
+ 		START_DATE = to_date(#{start_date},'YYYY-MM-DD HH24:MI'), 
+ 		END_DATE= to_date(#{end_date},'YYYY-MM-DD HH24:MI') 
+ 		WHERE EMPNO = #{empno}
+ 		AND SCHENO = #{id}
+ 	</update>
+ 	<!-- 일정 테이블 delete -->
+ 	<delete id="deleteSche" parameterType="int">
+ 		DELETE FROM SCHEDULE WHERE SCHENO = #{id}
+ 	</delete>
+ 	
+ 	<!-- 오늘 ~ 일주일 일정 불러오기 -->
+ 	<select id="getThisWeekSche" parameterType="String" resultType="sche">
+ 		SELECT * FROM 
+		((SELECT p.PROJECTNO id, to_date(p.STARTDATE,'YY-MM-DD') schedule, 
+		p.pname||' 시작일' text, '프로젝트' "subject"
+		FROM PROJECT p, MEMBER m
+		WHERE m.EMPNO = #{empno}
+		AND p.PROJECTNO = m.PROJECTNO)
+		UNION ALL 
+		(SELECT p.PROJECTNO id, to_date(p.ENDDATE,'YY-MM-DD') schedule, 
+		p.pname||' 종료일' text, '프로젝트' "subject"
+		FROM PROJECT p, MEMBER m
+		WHERE m.EMPNO = #{empno}
+		AND p.PROJECTNO = m.PROJECTNO)
+		UNION ALL 	
+		(SELECT TASKNO id, to_date(P_STARTDATE,'YY-MM-DD') schedule, 
+		TITLE||' 시작일' text, '업무' "subject"
+		FROM TASK
+		WHERE EMPNO = #{empno})
+		UNION ALL 
+		(SELECT TASKNO id, to_date(P_ENDDATE,'YY-MM-DD') schedule, 
+		TITLE||' 종료일' text, '업무' "subject"
+		FROM TASK
+		WHERE EMPNO = #{empno})
+		UNION ALL 	
+		(SELECT td.DIVNO id, to_date(td.STARTDATE,'YY-MM-DD') schedule, 
+		td.TITLE||' 시작일' text, '분할업무' "subject"
+		FROM TASK_DIVISION td, TASK t
+		WHERE td.TASKNO = t.TASKNO 
+		AND t.EMPNO = #{empno})
+		UNION ALL 
+		(SELECT td.DIVNO id, to_date(td.ENDDATE,'YY-MM-DD') schedule, 
+		td.TITLE||' 종료일' text, '분할업무' "subject"
+		FROM TASK_DIVISION td, TASK t
+		WHERE td.TASKNO = t.TASKNO 
+		AND t.EMPNO = #{empno})
+		UNION ALL 	
+		(SELECT SCHENO id, to_date(START_DATE,'YY-MM-DD') schedule, 
+		TEXT||' 시작일' text, '일반' "subject"
+		FROM SCHEDULE
+		WHERE EMPNO = #{empno})
+		UNION ALL
+		(SELECT SCHENO id, to_date(END_DATE,'YY-MM-DD') schedule, 
+		TEXT||' 종료일' text, '일반' "subject"
+		FROM SCHEDULE
+		WHERE EMPNO = #{empno}))
+		WHERE to_date(SCHEDULE,'YYYY-MM-DD') BETWEEN to_date(SYSDATE,'YYYY-MM-DD') AND to_date(SYSDATE,'YYYY-MM-DD')+7
+ 	</select>
+ 	<!-- 프로젝트 이슈현황  -->
+ 	<select id="projectIssueStatus" resultType="pi" parameterType="int">
+ 		SELECT COUNT(CASE WHEN STATE='조치완료' THEN 1 END) "complete", 
+		COUNT(CASE WHEN STATE = '조치대기' THEN 1 END) "wait",
+		COUNT(CASE WHEN STATE = '조치진행' THEN 1 END) "measuring"
+		FROM ISSUE 
+		WHERE PROJECTNO = #{projectno}
+ 	</select>
+ 	<!-- 알림창 내용 불러오기 -->
+ 	<select id="getNotice" parameterType="String" resultType="notice">
+ 		SELECT * FROM 
+		((SELECT p.PNAME||' 프로젝트에 멤버로 등록되셨습니다.' text, m.REGDATE dates,
+		CASE WHEN to_date(m.REGDATE,'YYYY-MM-DD')=to_date(SYSDATE,'YYYY-MM-DD') THEN '오늘' 
+			 WHEN to_date(m.REGDATE,'YYYY-MM-DD')&lt;to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(SYSDATE,'YYYY-MM-DD')-to_date(m.REGDATE,'YYYY-MM-DD')||'일 전' 
+			 WHEN to_date(m.REGDATE,'YYYY-MM-DD')>to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(m.REGDATE,'YYYY-MM-DD')-to_date(SYSDATE,'YYYY-MM-DD')||'일 후'END notice 
+		FROM "MEMBER" m, PROJECT p
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno})
+		UNION ALL 
+		(SELECT TITLE||' 업무에 담당자로 배정되셨습니다.' text, ASSIGNDATE dates,
+		CASE WHEN to_date(ASSIGNDATE ,'YYYY-MM-DD')=to_date(SYSDATE,'YYYY-MM-DD') THEN '오늘' 
+			 WHEN to_date(ASSIGNDATE ,'YYYY-MM-DD')&lt;to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(SYSDATE,'YYYY-MM-DD')-to_date(ASSIGNDATE ,'YYYY-MM-DD')||'일 전' 
+			 WHEN to_date(ASSIGNDATE ,'YYYY-MM-DD')>to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(ASSIGNDATE ,'YYYY-MM-DD')-to_date(SYSDATE,'YYYY-MM-DD')||'일 후' END notice 
+		FROM TASK
+		WHERE EMPNO = #{empno})
+		UNION ALL 
+		(SELECT p.PNAME||' 프로젝트가 종료되었습니다.' text, p.ENDDATE dates,
+		CASE WHEN to_date(p.ENDDATE ,'YYYY-MM-DD')=to_date(SYSDATE,'YYYY-MM-DD') THEN '오늘' 
+			 WHEN to_date(p.ENDDATE ,'YYYY-MM-DD')&lt;to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(SYSDATE,'YYYY-MM-DD')-to_date(p.ENDDATE ,'YYYY-MM-DD')||'일 전' 
+			 WHEN to_date(p.ENDDATE ,'YYYY-MM-DD')>to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(p.ENDDATE ,'YYYY-MM-DD')-to_date(SYSDATE ,'YYYY-MM-DD')||'일 후'END notice  
+		FROM "MEMBER" m, PROJECT p
+		WHERE m.PROJECTNO = p.PROJECTNO 
+		AND m.EMPNO = #{empno})
+		UNION ALL 
+		(SELECT TITLE||' 업무가 '||STATE||'되었습니다' text, CONDATE dates,
+		CASE WHEN to_date(CONDATE ,'YYYY-MM-DD')=to_date(SYSDATE,'YYYY-MM-DD') THEN '오늘' 
+			 WHEN to_date(CONDATE ,'YYYY-MM-DD')&lt;to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(SYSDATE,'YYYY-MM-DD')-to_date(CONDATE ,'YYYY-MM-DD')||'일 전' 
+			 WHEN to_date(CONDATE ,'YYYY-MM-DD')>to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(CONDATE ,'YYYY-MM-DD')-to_date(SYSDATE,'YYYY-MM-DD')||'일 후'END notice 
+		FROM TASK
+		WHERE EMPNO = #{empno}
+		AND STATE = '승인완료' OR STATE = '반려')
+		UNION ALL 
+		(SELECT TEXT||' : 일정 알림(시작)' text, START_DATE dates,
+		CASE WHEN (to_char(START_DATE ,'YYYY-MM-DD')=to_char(SYSDATE,'YYYY-MM-DD') AND to_char(START_DATE ,'HH24')=to_char(SYSDATE,'HH24') AND to_char(START_DATE,'MI')>TO_CHAR(SYSDATE,'MI')) THEN ROUND((START_DATE-SYSDATE)*24*60)||'분 후'
+			 WHEN (to_char(START_DATE ,'YYYY-MM-DD')=to_char(SYSDATE,'YYYY-MM-DD') AND to_char(START_DATE ,'HH24')=to_char(SYSDATE,'HH24') AND to_char(START_DATE,'MI')&lt;TO_CHAR(SYSDATE,'MI')) THEN ROUND((SYSDATE-START_DATE)*24*60)||'분 전'
+			 WHEN (to_char(START_DATE ,'YYYY-MM-DD')=to_char(SYSDATE,'YYYY-MM-DD') AND to_char(START_DATE ,'HH24')>to_char(SYSDATE,'HH24')) THEN ROUND((START_DATE-SYSDATE)*24)||'시간 후' 
+			 WHEN (to_char(START_DATE ,'YYYY-MM-DD')=to_char(SYSDATE,'YYYY-MM-DD') AND to_char(START_DATE ,'HH24')&lt;to_char(SYSDATE,'HH24')) THEN ROUND((SYSDATE-START_DATE)*24)||'시간 전' 
+			 WHEN to_date(START_DATE ,'YYYY-MM-DD')>to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(START_DATE,'YYYY-MM-DD')-to_date(SYSDATE,'YYYY-MM-DD')||'일 후' 
+			 WHEN to_date(START_DATE ,'YYYY-MM-DD')&lt;to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(SYSDATE,'YYYY-MM-DD')-to_date(START_DATE,'YYYY-MM-DD')||'일 전'END notice 
+		FROM SCHEDULE
+		WHERE EMPNO = #{empno})
+		UNION ALL 
+		(SELECT TEXT||' : 일정 알림(종료)' text, END_DATE dates,
+		CASE WHEN (to_char(END_DATE ,'YYYY-MM-DD')=to_char(SYSDATE,'YYYY-MM-DD') AND to_char(END_DATE ,'HH24')=to_char(SYSDATE,'HH24') AND to_char(END_DATE,'MI')>TO_CHAR(SYSDATE,'MI')) THEN ROUND((END_DATE-SYSDATE)*24*60)||'분 후'
+			 WHEN (to_char(END_DATE ,'YYYY-MM-DD')=to_char(SYSDATE,'YYYY-MM-DD') AND to_char(END_DATE ,'HH24')=to_char(SYSDATE,'HH24') AND to_char(END_DATE,'MI')&lt;TO_CHAR(SYSDATE,'MI')) THEN ROUND((SYSDATE-END_DATE)*24*60)||'분 전'
+			 WHEN (to_char(END_DATE ,'YYYY-MM-DD')=to_char(SYSDATE,'YYYY-MM-DD') AND to_char(END_DATE ,'HH24')>to_char(SYSDATE,'HH24')) THEN ROUND((END_DATE-SYSDATE)*24)||'시간 후' 
+			 WHEN (to_char(END_DATE ,'YYYY-MM-DD')=to_char(SYSDATE,'YYYY-MM-DD') AND to_char(END_DATE ,'HH24')&lt;to_char(SYSDATE,'HH24')) THEN ROUND((SYSDATE-END_DATE)*24)||'시간 전' 
+			 WHEN to_date(END_DATE ,'YYYY-MM-DD')>to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(END_DATE,'YYYY-MM-DD')-to_date(SYSDATE,'YYYY-MM-DD')||'일 후' 
+			 WHEN to_date(END_DATE ,'YYYY-MM-DD')&lt;to_date(SYSDATE,'YYYY-MM-DD') THEN to_date(SYSDATE,'YYYY-MM-DD')-to_date(END_DATE,'YYYY-MM-DD')||'일 전'END notice 
+		FROM SCHEDULE
+		WHERE EMPNO = #{empno}
+		AND to_date(START_DATE,'YYYY-MM-DD')!=to_date(END_DATE,'YYYY-MM-DD')))
+		WHERE to_date(DATES,'YYYY-MM-DD') BETWEEN TO_DATE(SYSDATE,'YYYY-MM-DD')-3 AND TO_DATE(SYSDATE,'YYYY-MM-DD')+3 
+		ORDER BY DATES DESC
+ 	</select>
+ 	
+	
+</mapper>

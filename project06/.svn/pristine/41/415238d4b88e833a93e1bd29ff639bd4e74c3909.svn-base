@@ -1,0 +1,1041 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"
+    import="java.util.*"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<c:set var="path" value="${pageContext.request.contextPath}"/>
+<fmt:requestEncoding value="utf-8"/>
+<!DOCTYPE html>
+<%--
+
+--%>
+<html>
+<head>
+<meta charset="${encoding}">
+<title>Insert title here</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="${path}/assets/vendor/bootstrap/css/bootstrap.min.css">
+<link href="${path}/assets/vendor/fonts/circular-std/style.css" rel="stylesheet">
+<link rel="stylesheet" href="${path}/assets/libs/css/style.css">
+<link rel="stylesheet" href="${path}/assets/vendor/fonts/fontawesome/css/fontawesome-all.css">
+<link rel="stylesheet" href="${path}/assets/vendor/charts/chartist-bundle/chartist.css">
+<link rel="stylesheet" href="${path}/assets/vendor/charts/morris-bundle/morris.css">
+<link rel="stylesheet" href="${path}/assets/vendor/fonts/material-design-iconic-font/css/materialdesignicons.min.css">
+<link rel="stylesheet" href="${path}/assets/vendor/charts/c3charts/c3.css">
+<link rel="stylesheet" href="${path}/assets/vendor/fonts/flag-icon-css/flag-icon.min.css">
+<link href='${path}/assets/vendor/full-calendar/css/fullcalendar.css' rel='stylesheet' />
+<link href='${path}/assets/vendor/full-calendar/css/fullcalendar.print.css' rel='stylesheet' media='print' />
+<link rel="stylesheet" href="${path}/a00_com/bootstrap.min.css" >
+<link rel="stylesheet" href="${path}/a00_com/jquery-ui.css" >
+<link rel="stylesheet" href="${path}/a00_com/dhtmlxgantt.css?v=7.0.2">
+<link rel="stylesheet" href="${path}/a00_com/controls_styles.css?v=7.0.2">
+<link href="${path}/assets/vendor/fonts/circular-std/style.css?v=7.0.2" rel="stylesheet">
+<link rel="stylesheet" href="${path}/a00_com/chart.css?v=6.4.3">
+<link rel="stylesheet" href="${path}/a00_com/index.css?v=6.4.3">
+<style type="text/css">
+	th{background-color:#E6E6F2}
+	.gantt_task_progress {text-align: left;padding-left: 10px;box-sizing: border-box;
+			color: white;font-weight: bold;}
+	.gantt_task_line.gantt_project{color:white;}
+	.gantt_side_content{color:#333;}
+	.summary-bar{font-weight: bold;}
+	.gantt_resource_task .gantt_task_content{color:inherit;}
+	.gantt_resource_task .gantt_task_progress{background-color:rgba(33,33,33,0.3);}
+	.gantt_cell:nth-child(1) .gantt_tree_content{
+			border-radius: 16px;
+			width: 100%;
+			height: 80%;
+	}
+	ul{margin:0;padding:0}
+	ul>li{list-style:none;}
+	.gantt_cell{padding-top:5px;line-height:23.19px;}
+	.gantt_tree_content{line-height:23.19px;}
+	#cruTask{display:none;}
+	#joinMember{display:none;}
+</style>
+<script type="text/javascript">
+
+</script>
+</head>
+<body>        
+	<!-- ============================================================== -->
+    <!-- main wrapper -->
+    <!-- ============================================================== -->
+    <div class="dashboard-main-wrapper">        
+		<jsp:include page="../nav_bar.jsp"/>
+		<jsp:include page="../menu_bar.jsp"/>
+        <!-- ============================================================== -->
+        <!-- wrapper  -->
+        <!-- ============================================================== -->
+        <div id="wholeContainer" class="dashboard-wrapper" >
+            <div class="dashboard-ecommerce">
+                <div id="mainContainer" class="container-fluid dashboard-content " style="min-height:792px;" >
+                    <!-- ============================================================== -->
+                    <!-- pageheader  -->
+                    <!-- ============================================================== -->
+                    <div class="row">
+                        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+                            <div class="page-header">
+                            	<!-- 페이지 타이틀 -->
+                                <h2 class="pageheader-title">Dashboard 상세</h2>
+                                <div class="page-breadcrumb">
+                                    <nav aria-label="breadcrumb">
+                                        <ol class="breadcrumb">
+                                            <li class="breadcrumb-item"><a href="${path}/issue.do?method=dash" class="breadcrumb-link">Dashboard</a></li>
+                                            <li class="breadcrumb-item active" aria-current="page">상세 Dashboard</li>
+                                        </ol>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ============================================================== -->
+                    <!-- end pageheader  -->
+                    <!-- ============================================================== -->
+                    <div class="ecommerce-widget">
+                    	<div class="row">                            
+                        	<div id="mainWrapper" class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+	                          	<div class="tab-outline">
+	                                <ul class="nav nav-tabs" id="myTab2" role="tablist">
+	                                    <li class="nav-item">
+	                                    <form id="form10" method="post">
+	                                        <select class="form-control" id="selectP" name="selectP" style="width:100%;-webkit-appearance:button;"
+	                                        	onchange="location.href=this.value">
+	                                        <option value="${param.projectno}">${project.pname}</option>
+	                                        <c:forEach var="p3" items="${plist3}" varStatus="sts">
+	                                        <c:if test="${p3.projectno!=project.projectno}">
+				                            		<option value="issue.do?method=dashDetail&projectno=${p3.projectno}">${p3.pname}</option>
+				                            </c:if>
+				                            </c:forEach>
+	                                        </select><br>
+	                                     </form>   
+	                                    </li>
+	                                </ul>
+	                                <div class="tab-content" id="myTabContent2">
+	                                    <div class="tab-pane fade show active" id="outline-one" role="tabpanel" aria-labelledby="tab-outline-one">
+	                                        <!-- 첫 번째 탭 내용 -->
+	                                        <div class="row">
+	                                        	<div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 col-12" style="width:50%">
+					                                <div class="card" style="height:445px">
+					                                    <div class="card-header" style="font-weight:bold;line-height:34px;">
+					                                    	프로젝트 정보
+					                                    	 
+					                                    </div>
+					                                    <div class="card-body">
+					                                        <table class="table table-bordered" style="font-size:13px;">
+						                                        <tbody>
+						                                            <tr>
+						                                                <th style="font-weight:bold;width:40%">프로젝트명</th>
+						                                                <td>${project.pname}</td>
+						                                            </tr>
+						                                            <tr>
+						                                                <th style="font-weight:bold">프로젝트 분류</th>
+						                                                <td class="text-center">${project.kname}</td>
+						                                            </tr>
+						                                            <tr>
+						                                                <th style="font-weight:bold">프로젝트 상태</th>
+						                                                <td class="text-center">${project.state}</td>
+						                                            </tr>
+						                                            <tr>
+						                                                <th style="font-weight:bold">프로젝트 담당자</th>
+						                                                <td class="text-center">${project.name}</td>
+						                                            </tr>
+						                                            <tr>
+						                                                <th style="font-weight:bold">프로젝트 기간</th>
+						                                                <td>${project.startdate} ~ ${project.enddate}</td>
+						                                            </tr>
+						                                            <tr>
+						                                                <th style="font-weight:bold">프로젝트 인원</th>
+						                                                <td class="text-right">${project.personnel}명</td>
+						                                            </tr>
+						                                            <tr>
+						                                                <th style="font-weight:bold">프로젝트 예산</th>
+						                                                <td class="text-right"><fmt:formatNumber value="${project.budget}" pattern="#,###"/> 원</td>
+						                                                
+						                                                
+						                                            </tr>
+						                                        </tbody>
+						                                    </table>
+					                                    </div>
+					                                </div>
+					                            </div>
+					                            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 col-12" style="width:50%">
+					                                <div class="card" style="height:445px">
+					                                    <div class="card-header" style="font-weight:bold;line-height:34px;">
+					                                    	프로젝트 멤버(총 ${project.personnel}명)				                                    	
+					                                    </div>
+					                                    
+					                                	<div class="card-body" style="height:380px">
+					                                    	<table class="table" style="font-size:13px;">
+						                                        <thead>
+						                                            <tr>
+						                                                <th class="text-center" style="font-wieght:bold" scope="col">이름</th>
+						                                                <th class="text-center" style="font-wieght:bold" scope="col">등록일</th>
+						                                                <th class="text-center" style="font-wieght:bold" scope="col">역할</th>
+						                                            </tr>
+						                                        </thead>
+						                                        <tbody>
+						                                        	<c:forEach var="member" items="${mlist}">
+						                                            <tr 
+						                                            <c:if test="${member.rname.equals('PM')}">
+						                                            class="table-primary"
+						                                            </c:if>
+						                                            <c:if test="${member.rname.equals('백엔드')}">
+						                                            class="table-success"
+						                                            </c:if>
+						                                            <c:if test="${member.rname.equals('프론트엔드')}">
+						                                            class="bg-warning"
+						                                            </c:if>
+						                                            >
+						                                                <td>${member.name}</td>
+						                                                <td class="text-center">${member.regdate}</td>
+						                                                <td class="text-center">${member.rname}</td>
+						                                            </tr>
+						                                            </c:forEach>					                                            
+						                                        </tbody>
+						                                    </table>
+						                                    <form id="pageFr" method="post" action="${path}/issue.do?method=dashDetail&projectno=${project.projectno}">
+						                                    	<input type="hidden" name="curPage" value="${memMA.curPage}">
+						                                    </form>
+						                                    <div style="width:100%;height:50px;text-align:right;margin-top:10px;">
+						                                    	<div id="pervMem" class="fas fa-angle-left" 
+						                                    	style="background-color:#e6e6f2;border:1px solid #e6e6f2;
+						                                    	padding:5px;cursor:pointer">
+						                                    	</div>
+						                                    	<div id="nextMem" class="fas fa-angle-right" 
+						                                    	style="background-color:#e6e6f2;border:1px solid #e6e6f2;
+						                                    	padding:5px;cursor:pointer">
+						                                    	</div>
+						                                    </div>
+						                                   	
+					                                	</div>
+					                                	<%-- <div class="card-body" style="height:380px">
+					                                    	<table class="table" style="font-size:13px;">
+						                                        <thead>
+						                                            <tr>
+						                                                <th scope="col">이름</th>
+						                                                <th scope="col">등록일</th>
+						                                                <th scope="col">역할</th>
+						                                            </tr>
+						                                        </thead>
+						                                        <tbody>
+						                                        	<c:forEach var="member" items="${mlist}">
+						                                            <tr 
+						                                            <c:if test="${member.rname.equals('PM')}">
+						                                            class="table-primary"
+						                                            </c:if>
+						                                            <c:if test="${member.rname.equals('백엔드')}">
+						                                            class="table-success"
+						                                            </c:if>
+						                                            <c:if test="${member.rname.equals('프론트엔드')}">
+						                                            class="bg-warning"
+						                                            </c:if>
+						                                            >
+						                                                <td>${member.name}</td>
+						                                                <td>${member.regdate}</td>
+						                                                <td>${member.rname}</td>
+						                                            </tr>
+						                                            </c:forEach>					                                            
+						                                        </tbody>
+						                                    </table>
+						                                    <form id="pageFr" method="post" action="${path}/issue.do?method=dashDetail&projectno=${project.projectno}">
+						                                    	<input type="hidden" name="curPage" value="${memMA.curPage}">
+						                                    </form>
+						                                    <div style="width:100%;height:50px;text-align:right;margin-top:10px;">
+						                                    	<div id="pervMem" class="fas fa-angle-left" 
+						                                    	style="background-color:#e6e6f2;border:1px solid #e6e6f2;
+						                                    	padding:5px;cursor:pointer">
+						                                    	</div>
+						                                    	<div id="nextMem" class="fas fa-angle-right" 
+						                                    	style="background-color:#e6e6f2;border:1px solid #e6e6f2;
+						                                    	padding:5px;cursor:pointer">
+						                                    	</div>
+						                                    </div>
+						                                   	
+					                                	</div> --%>
+					                            	</div>
+					                            </div>   
+					                            <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 col-12" style="width:50%">
+					                                <div class="card" style="height:445px">
+					                                    <div class="card-header" style="font-weight:bold">
+					                                    	프로젝트 이슈&리스크 
+					                                    </div>
+					                                    <div class="card-body cbody0" style="height:374px;padding-top:40px;">
+					                                    	<div id="c3chart_pie"></div>
+					                                	</div>
+					                            	</div>
+					                            </div>                                             
+	                                        </div>
+	                                        <div class="row">
+	                                        	<div class="col-xl-12 col-lg-10 col-md-6 col-sm-12 col-12">
+	                                        		<div class="card">
+	                                        			<div class="card-header" style="font-weight:bold;">
+	                                        				간트차트
+	                                        			</div>
+	                                        			<div class="card-body">
+	                                        			<form class="gantt_control">
+											
+										
+											<input type="radio" id="scale1" class="gantt_radio" name="scale" value="hour"  checked>
+											<label for="scale1">Hour</label>
+											<input type="radio" id="scale2" class="gantt_radio" name="scale" value="day">
+											<label for="scale2">Day</label>
+										
+											<input type="radio" id="scale3" class="gantt_radio" name="scale" value="week">
+											<label for="scale3">Week</label>
+										
+											<input type="radio" id="scale4" class="gantt_radio" name="scale" value="month">
+											<label for="scale4">Month</label>
+										
+											<input type="radio" id="scale5" class="gantt_radio" name="scale" value="quarter">
+											<label for="scale5">Quarter</label>
+										
+											<input type="radio" id="scale6" class="gantt_radio" name="scale" value="year">
+											<label for="scale6">Year</label>
+										
+										</form>
+	                                        				<div id="gantt_here" style='width:100%;'></div>
+	                                        			</div>
+	                                        		</div>
+	                                        	</div>	
+	                                        </div>                                        
+	                                    </div>                                    
+	                                    
+	                                </div>
+	                            </div>
+                        	</div>  
+                    	</div>                        
+                    </div>
+                </div>
+            </div>
+            <!-- ============================================================== -->
+            <!-- footer -->
+            <!-- ============================================================== -->
+            <div class="footer">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12">
+                             Copyright © 2018 Concept. All rights reserved. Dashboard by <a href="https://colorlib.com/wp/">Colorlib</a>.
+                        </div>
+                        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12">
+                            <div class="text-md-right footer-links d-none d-sm-block">
+                                <a href="javascript: void(0);">About</a>
+                                <a href="javascript: void(0);">Support</a>
+                                <a href="javascript: void(0);">Contact Us</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ============================================================== -->
+            <!-- end footer -->
+            <!-- ============================================================== -->
+        </div>
+        <!-- ============================================================== -->
+        <!-- end wrapper  -->
+        <!-- ============================================================== -->
+    </div>
+    <!-- ============================================================== -->
+    <!-- end main wrapper  -->
+    <!-- ============================================================== -->
+    
+    
+    
+    <!-- Optional JavaScript -->
+    <!-- jquery 3.3.1 -->
+    <script src="${path}/a00_com/jquery-3.4.1.js"></script>
+    <!-- bootstap bundle js -->
+    <script src="${path}/assets/vendor/bootstrap/js/bootstrap.bundle.js"></script>
+    <!-- slimscroll js -->
+    <script src="${path}/assets/vendor/slimscroll/jquery.slimscroll.js"></script>
+    <!-- main js -->
+    <script src="${path}/assets/libs/js/main-js.js"></script>
+    <!-- sparkline js -->
+    <script src="${path}/assets/vendor/charts/sparkline/jquery.sparkline.js"></script>
+    <!-- morris js -->
+    <script src="${path}/assets/vendor/charts/morris-bundle/raphael.min.js"></script>
+    <!-- full calendar js -->
+	<script src='${path}/assets/vendor/full-calendar/js/moment.min.js'></script>
+	<script src='${path}/assets/vendor/full-calendar/js/fullcalendar.js'></script>
+	<script src='${path}/assets/vendor/full-calendar/js/jquery-ui.min.js'></script>
+	<script src='${path}/assets/vendor/full-calendar/js/calendar.js'></script>
+	<!-- chart -->	
+    <script src="${path}/assets/vendor/charts/c3charts/c3.min.js"></script>
+    <script src="${path}/assets/vendor/charts/c3charts/d3-5.4.0.min.js"></script>
+	<script src="${path}/a00_com/dhtmlxgantt.js?v=7.0.2"></script>
+	<script src="${path}/a00_com/popper.min.js"></script>
+	<script src="${path}/a00_com/jquery-ui.js"></script>
+
+	<!-- 작업 생성/수정/확인 다이얼로그창 -->
+	<div id="cruTaks" class="gantt_cal_light" title="작업 생성">
+		<form name="add_Task" id="add_Task" method="post">
+		<input type="hidden" name="projectno" value="${project.projectno}">
+		<input type="hidden" name="taskno">
+		<input type="hidden" name="open" value="1"/>
+		<div class="gantt_cal_larea" style="height: 530px;">
+			<div id="title_label" class="gantt_cal_lsection">
+				<label for="title">제목</label>
+			</div>
+			<div class="gantt_cal_ltext" style="height:38px;">
+				<textarea id="title" name="title"></textarea>
+			</div>
+			<div id="content_label" class="gantt_cal_lsection">
+				<label for="content">내용</label>
+			</div>
+			<div class="gantt_cal_ltext" style="height:76px;">
+				<textarea id="content" name="content"></textarea>
+			</div>
+			<div id="priority_label" class="gantt_cal_lsection">
+				<label for="priority">우선순위</label>
+			</div>
+			<div class="gantt_cal_ltext" style="height:22px;">
+				<select style="width:100%; id="priority" name="priority">
+					<option value="1">상</option>
+					<option value="2">중</option>
+					<option value="3">하</option>
+				</select>
+			</div>
+			<div id="empno_label" class="gantt_cal_lsection">
+				<label for="empno">담당자</label>
+			</div>
+			<div class="gantt_cal_ltext" style="height:22px;">
+				<select style="width:100%;" id="empno" name="empno">
+					<option value="미배정">미배정</option>
+					<c:forEach var="member" items="${mlist}">
+						<option value="${member.empno}">${member.name}</option>
+					</c:forEach>
+				</select>
+			</div>
+			<div id="start_end_date" class="gantt_cal_lsection">
+				<label for="startdate">업무 기간</label>
+			</div>
+			<div class="dhx_calendar_cont">
+				<input type="text" readonly="true" id="startdate" name="p_startdate" style="border:1px solid #cecece;margin-left:10px;">
+				<font style="vertical-align: inherit;">
+					<font style="vertical-align: inherit;"> – </font>
+				</font>
+				<input type="text" readonly="true" id="enddate" name="p_enddate" style="border:1px solid #cecece;margin-left:10px;">				
+			</div>
+			<div id="refno_label" class="gantt_cal_lsection">
+				<label for="refno">상위 업무(프로젝트)</label>
+			</div>
+			<div class="gantt_cal_ltext" style="height:23px;">
+				<select style="width:100%;" name="refno">
+					<option value="0">없음</option>
+					<c:forEach var="task" items="${tlist}">
+						<option value="${task.taskno}">${task.title}</option>
+					</c:forEach>
+				</select>
+			</div>
+		</div>
+		<div role="button" id="reg_btn" class="gantt_btn_set gantt_left_btn_set gantt_save_btn_set">
+			<div dhx_button="1" data-dhx-button="1" class="gantt_save_btn"></div>
+			<div id="btn_name">저장</div>
+		</div>
+		
+			
+		</form>	
+	</div>
+		
+	<div id="joinMember" title="멤버 추가">
+		<form id="joinMemFr">
+		<input type="hidden" name="selected_memberno"/>
+		<div class="form-group">
+			<label for="roleno">선택된 사원번호</label>
+			<input id="sel_member" style="text-align:center" type="hidden" class="form-control" readonly/>
+			<input id="sel_empno" style="text-align:center" type="text" class="form-control" readonly/>
+		</div>
+		<div class="form-group">
+			<label for="roleno">역할</label>
+	        <select id="sel_roleno" name="roleno" class="form-control">
+	        	<c:forEach var="role" items="${roles}">
+	        		<option 
+	        		<c:if test="${role.roleno==1}">disabled="disabled"</c:if>
+	        		 value="${role.roleno}">${role.rname}</option>
+	        	</c:forEach>
+	        </select>
+        </div>
+        </form>
+	</div>
+</body>
+<script type="text/javascript">
+
+
+	$(document).ready(function(){
+		callNotice();
+		var auth = "${mem.authno}";
+		if(auth!="4"){
+			alert("접근 권한이 없습니다!");
+			window.history.go(-1);
+		}
+/*  		var cbody = $("#cbody2").height();
+		
+		if(cbody>=405){
+			resizeCbody();
+			
+		} 
+		function resizeCbody(){
+			$(".cbody0").css("height",cbody+"px");			
+			alert(cbody);
+		} */
+		 
+		<%-- --%>
+/* 		function resize(){
+			var tab2_height = $("#mainWrapper").height();
+			$("#mainContainer").css("height",tab2_height+150+"px");
+			$("#wholeContainer").css("height",$("#mainContainer").height()+40+"px");
+		}
+		setTimeout(resize, 200); */
+		// 프로젝트 번호 정보
+		var projectno = "${project.projectno}";	    
+		var prono = "${param.projectno}";
+		
+		if(prono==""||prono==null){
+			prono="${lpno.projectno}";
+		}
+		
+
+		
+		var mem = "${mem.empno}";
+		/* 로그인 되지않았을때 로그인창으로 이동 */
+		if (mem == null || mem == "") {
+			$(location).attr("href", "${path}/login.do?method=base");
+		}else{
+			/* 로그인 되었을 때 회원 권한 처리 */
+			var authno = "${mem.authno}";
+			switch (authno*1) {
+				case 1:
+					$(".ml-2").text("권한 >일반 사용자");
+					break;
+				case 2:
+					$(".ml-2").text("권한 >PM");
+					break;
+				case 3:
+					$(".ml-2").text("권한 >ADMIN");
+					break;
+				case 4:
+					$(".ml-2").text("권한 >CEO");
+					break;
+			}
+		}
+
+		/* 로그아웃 처리 */
+		var logoutOk = "${logoutOk}";
+		if (logoutOk == "true") {
+			$(location).attr("href", "${path}/login.do?method=base");
+		}
+		$("#goLogout").click(function() {
+			if (mem != null) {
+				if (confirm("로그아웃 하시겠습니까?")) {
+					$(location).attr("href", "${path}/login.do?method=logout");
+				}
+			}
+		});
+
+		
+		$("#pervMem").click(function(){			
+			var curPage = $("[name=curPage]").val();
+			if(curPage>1){
+				curPage--;
+				$("[name=curPage]").val(curPage);	
+				$("#pageFr").submit();
+			}
+		});
+		$("#nextMem").click(function(){			
+			var curPage = $("[name=curPage]").val();
+			var totPage = "${memMA.pageCount}";
+			if(curPage<totPage){
+				curPage++;
+				$("[name=curPage]").val(curPage);
+				$("#pageFr").submit();			
+			}
+		});	
+		
+		// 데이트피커 설정
+		$("#startdate, #enddate").datepicker({
+			dateFormat:'yy-mm-dd'
+		});
+		
+		// 파이차트
+		"use strict";
+		var complete = "${istatus.complete}"*1;
+		var wait = "${istatus.wait}"*1;
+		var measuring = "${istatus.measuring}"*1;
+		
+		var tot = complete+wait+measuring;
+		var com_per = complete/tot;
+		console.log(com_per);
+		var wait_per = wait/tot;
+		console.log(wait_per);
+		var meas_per = measuring/tot;
+		console.log(meas_per);
+		
+	    $(function() {
+			if ($('#c3chart_pie').length) {
+	            var chart = c3.generate({
+	                bindto: "#c3chart_pie",
+	                data: {
+	                    columns: [
+	                        ['조치완료', com_per.toFixed(1)],
+	                        ['조치대기', wait_per.toFixed(1)],
+	                        ['조치진행', meas_per.toFixed(1)]	                  
+	                    ],
+	                    type: 'pie',
+	
+	                    colors: {
+	                    	'조치완료': '#5969ff',
+	                    	'조치진행': '#20c997',
+	                    	'조치대기' : '#ffc107'	
+	                    }
+	                },
+	                pie: {
+	                    label: {
+	                        format: function(value, ratio, id) {
+	                            return d3.format('.0%')(value);
+	                        }
+	                    }
+	                }
+	            });
+	        }
+	    });
+	    
+		// 다이얼로그 설정
+	    $( "#cruTaks" ).dialog({
+	        autoOpen: false,
+	        height: 640,
+	        width: 500,
+	        modal: true,
+	        close: function() {
+	   			$('textarea').prop('readonly', false);
+	   			$('select').prop('disabled',false);
+	   			$('input').datepicker('option', 'disabled', false);
+	        	$("#add_Task")[0].reset();
+	        }
+	    });
+		
+	    
+	    // 기존 담당자 저장용 (작업 수정 시 담당자 변경을 위한 처리)
+		var ori_empno="";
+		
+		// 다이얼로그 저장/수정/확인 버튼 이벤트
+		$("#reg_btn").click(function(){
+			/* $("#add_Task").attr("action","${path}/project.do?method=tinsert")
+	    	$("#add_Task").submit(); */
+	    	var btnname=$("#btn_name").text();
+	    	console.log(btnname);
+	    	
+	    	// 새 작업을 추가할 때 
+	    	if($("#btn_name").text()=="저장"){
+	    		var addTask={};
+		    	addTask.projectno=$("#cruTaks [name=projectno]").val();
+		    	addTask.title=$("#cruTaks [name=title]").val();
+		    	addTask.content=$("#cruTaks [name=content]").val();
+		    	addTask.p_startdate=$("#cruTaks [name=p_startdate]").val();
+		    	addTask.p_enddate=$("#cruTaks [name=p_enddate]").val();	    	
+		    	addTask.priority=$("#cruTaks [name=priority]").val();
+		    	addTask.refno=$("#cruTaks [name=refno]").val();
+				// boolean값 처리	    			
+				addTask.open=$("#cruTaks [name=open]").val()==1;
+				// 조건처리
+				if($("#cruTaks [name=empno]").val()=="미배정"){
+					addTask.state="미배정";
+					addTask.empno="";
+				}else{
+					addTask.state="배정완료"
+					addTask.empno=$("#cruTaks [name=empno]").val();
+				}
+				addTask.type="";
+					    			
+				// 2. ajax로 DB등록
+				$.ajax({
+					type:"post",
+					url:"${path}/issue.do?method=tinsert",
+					data:addTask, // 요청 데이터 전송 json객체형식 가능
+					success:function(){
+						alert("등록 완료!");
+						gantt.refreshData();
+						gantt.load("${path}/issue.do?method=gantt2&projectno="+prono);  
+						$("#add_Task")[0].reset();	    			
+						$("#cruTaks").dialog("close");
+					},
+					error:function(err){
+						alert("등록에 실패하였습니다!")
+						console.log(err);  
+						$("#add_Task")[0].reset();	    			
+						$("#cruTaks").dialog("close");
+					}
+				});
+				gantt.refreshData();
+				gantt.load("${path}/issue.do?method=gantt2&projectno="+prono);
+			
+			// 기존 작업을 수정할 때	
+	    	}else if($("#btn_name").text()=="수정"){
+	    		var update={};
+	    		update.projectno=$("#cruTaks [name=projectno]").val();
+	    		update.taskno=$("#cruTaks [name=taskno]").val();
+	    		update.title=$("#cruTaks [name=title]").val();
+	    		update.content=$("#cruTaks [name=content]").val();
+	    		update.p_startdate=$("#cruTaks [name=p_startdate]").val();
+	    		update.p_enddate=$("#cruTaks [name=p_enddate]").val();	    	
+	    		update.priority=$("#cruTaks [name=priority]").val();
+	    		update.refno=$("#cruTaks [name=refno]").val();
+	    		if($("#cruTaks [name=empno]").val()=="미배정"){
+	    			update.state="미배정";
+	    			update.empno="";	    			
+				}else{
+					if(ori_empno!=null&&ori_empno!=""){
+		    			if(ori_empno==$("#cruTaks [name=empno]").val()){
+		    				update.empno=$("#cruTaks [name=empno]").val();
+		    				update.assigndate="noCh";
+		    			}else{
+		    				update.empno=$("#cruTaks [name=empno]").val();
+		    				update.assigndate="sysdate";
+		    			}
+		    		}
+				}
+	    		update.type="";
+	    		$.ajax({
+					type:"post",
+					url:"${path}/issue.do?method=tupdate",
+					data : update, // 요청 데이터 전송 json객체형식 가능
+					success:function(){
+						alert("수정 완료!");
+						gantt.refreshData();
+						gantt.load("${path}/issue.do?method=gantt2&projectno="+prono);  
+						$("#add_Task")[0].reset();	    			
+						$("#cruTaks").dialog("close");
+					},
+					error:function(err){
+						console.log(err);
+						alert("수정에 실패했습니다");						  
+						$("#add_Task")[0].reset();	
+						$("#cruTaks").dialog("close");
+					}
+				});
+				gantt.refreshData();
+				gantt.load("${path}/issue.do?method=gantt2&projectno="+prono);
+	    		
+	    	}else if($("#btn_name").text()=="확인"){
+   				$('textarea').prop('readonly', false);
+   				$('select').prop('disabled',false);
+   				$('input').datepicker('option', 'disabled', false);
+	    		$("#cruTaks").dialog("close");
+	    	}
+			
+	    });
+		
+	    // 다이얼로그 취소버튼 클릭 이벤트
+	    $("#cancel_btn").click(function(){
+   			$('textarea').prop('readonly', false);
+   			$('select').prop('disabled',false);
+   			$('input').datepicker('option', 'disabled', false);
+	    	$("#cruTaks").dialog("close");
+	    });
+	    // 진행률 퍼센트 표시				
+	    gantt.templates.progress_text = function (start, end, task) {
+			return "<span style='text-align:right;'>" + Math.round(task.progress * 100) + "% </span>";
+		};
+		// 간트 컬럼 설정
+		gantt.config.columns = [
+			{name: "text", label: "업무명", tree: true, width: 300, template: function (task) {
+				if (task.priority == 1)
+					if(task.users==null||task.users==""){
+						return "<div class='important'>" + task.text + " (" + "미배정" + ") </div>";
+					}else{
+						return "<div class='important'>" + task.text + " (" + task.users + ") </div>";
+					}					
+					return task.text + " (" + task.users + ")";
+			}},
+			{name: "start_date", label: "시작일", align: "center"},
+			{name: "end_date", label: "종료일",width: 90, align: "center"}
+		];
+		// 간트 스케일 설정
+		var zoomConfig = {
+			levels: [
+				{
+					name:"hour",
+					scale_height: 54,
+					min_column_width:50,
+					scales:[
+						/* {unit: "hour", step: 3, format: "%H:%i"},
+						{unit: "day", step: 1, format: "%d %M"} */
+						{unit: "day", format: "%F %d"},
+						{unit: "hour", step: 3, format: "%H:%i"}
+					]
+				},
+				{
+					name:"day",
+					scale_height: 54,
+					min_column_width:80,
+					scales:[
+						{unit: "day", step: 1, format: "%d %M"},
+						{unit: "month", step: 1, format: "%M"}
+						
+					]
+				},
+				{
+					name:"week",
+					scale_height: 54,
+					min_column_width:50,
+					scales:[
+						{unit: "week", step: 1, format: function (date) {
+							var dateToStr = gantt.date.date_to_str("%M");
+							var endDate = gantt.date.add(date, -6, "day");
+							var weekNum = gantt.date.date_to_str("%W")(date);
+							return "#" + weekNum + ", " + dateToStr(date);
+						}},
+						{unit: "day", step: 1, format: "%j %D"}
+					]
+				},
+				{
+					name:"month",
+					scale_height: 54,
+					min_column_width:120,
+					scales:[
+						{unit: "month", format: "%F, %Y"},
+						{unit: "week", format: "Week #%W"}
+					]
+				},
+				{
+					name:"quarter",
+					height: 54,
+					min_column_width:90,
+					scales:[
+						{unit: "month", step: 1, format: "%M"},
+						{
+							unit: "quarter", step: 1, format: function (date) {
+								var dateToStr = gantt.date.date_to_str("%M");
+								var endDate = gantt.date.add(gantt.date.add(date, 3, "month"), -1, "day");
+								return dateToStr(date) + " - " + dateToStr(endDate);
+							}
+						}
+					]
+				},
+				{
+					name:"year",
+					scale_height: 54,
+					min_column_width: 30,
+					scales:[
+						{unit: "year", step: 1, format: "%Y"}
+					]
+				}
+			]
+		};
+		
+		gantt.ext.zoom.init(zoomConfig);
+		gantt.ext.zoom.setLevel("hour");
+		gantt.ext.zoom.attachEvent("onAfterZoom", function(level, config){
+			document.querySelector(".gantt_radio[value='" +config.name+ "']").checked = true;
+		})
+
+		var radios = document.getElementsByName("scale");
+		for (var i = 0; i < radios.length; i++) {
+			radios[i].onclick = function (event) {
+				gantt.ext.zoom.setLevel(event.target.value);
+			};
+		}		
+		
+		
+		
+		// 자동 크기조절
+		gantt.config.autosize = true;
+		// 자동 스케일
+		gantt.config.fit_tasks = true;
+		// 간트 행 이동여부
+		gantt.config.drag_move = false;
+		gantt.config.min_column_width = 50;
+		gantt.config.scale_height = 54;
+		gantt.config.scales = [
+			{unit: "day", format: "%F %d"},
+			{unit: "hour", step: 3, format: "%H:%i"}
+		];
+		function showScaleDesc() {
+			var min = gantt.getState().min_date,
+				max = gantt.getState().max_date,
+				to_str = gantt.templates.task_date;
+
+			return gantt.message("Scale shows days from " + to_str(min) + " to " + to_str(max));
+		}
+		setTimeout(showScaleDesc, 500);
+		setTimeout(function () {
+			gantt.message("기간이 변경되어 사이즈가 조절됩니다");
+		}, 4500);
+		gantt.attachEvent("onScaleAdjusted", showScaleDesc);
+		// 간트차트 행 더블클릭 했을 때 이벤트
+		gantt.attachEvent("onTaskDblClick",function(id){
+			if(gantt.getTask(id).parent!=0){
+				$("#cruTaks").dialog("option","title","업무 정보 확인");
+				var taskno = id;
+				function gettinfo(taskno){
+					$.ajax({
+				   		type : "post",
+				   		url : "${path}/issue.do?method=tinfo&taskno="+taskno,
+				   		dataType : "json",
+				   		success : function(data){
+				        	$("#add_Task")[0].reset();
+				   			$("#cruTaks [name=taskno]").val(data.task.taskno);
+				   			$("#cruTaks [name=title]").val(data.task.title);
+				   			$("#cruTaks [name=content]").val(data.task.content);
+				   			$("#cruTaks [name=priority]").val(data.task.priority);
+				   			if(data.task.empno==null){
+				   				$("#cruTaks [name=empno]").val("미배정");
+				   			}else{
+					   			$("#cruTaks [name=empno]").val(data.task.empno);
+					   			ori_empno=data.task.empno;
+				   			}
+				   			$("#cruTaks [name=p_startdate]").val(data.task.p_startdate);
+				   			$("#cruTaks [name=p_enddate]").val(data.task.p_enddate);
+				   			$("#cruTaks [name=refno]").val(data.task.refno);
+				   		},
+				   		error : function(err){
+				   			console.log(err);
+				   		}	  
+				   	})
+				}
+				gettinfo(taskno);
+					$('textarea').prop('readonly', true);
+					$('select').prop('disabled',true);
+					$('input').datepicker('option', 'disabled', true);
+					$("#btn_name").text("확인");
+				$("#cruTaks").dialog("open");
+			}else{
+				
+			}
+		});
+		
+		// 간트 차트 맵핑
+		gantt.init("gantt_here");
+		
+		// 기본 페이지 데이터 불러와서 파싱
+		function json(){
+			$.ajax({
+		   		type : "post",
+		   		url : "${path}/issue.do?method=gantt2&projectno="+prono,
+		   		dataType : "json",
+		   		success : function(data){
+		   			//alert(data.callist.length);
+		   		    //console.log(data);
+		   			// 함수의 기능 내용을 처리
+		   			// json객체의 내용을 리스트 처리
+		   			gantt.parse(data);
+		   			  
+		   		},
+		   		error : function(err){
+		   			console.log(err);
+		   		}	  
+		   	})
+		}
+		json();
+		
+		// 첫번째 탭 클릭 이벤트
+		$("#tab-outline-one").click(function(){
+			// 진행률 퍼센트 표시				
+		    gantt.templates.progress_text = function (start, end, task) {
+				return "<span style='text-align:right;'>" + Math.round(task.progress * 100) + "% </span>";
+			};
+			// 두번째 탭 내용 초기화
+			gantt.templates.grid_row_class =
+							gantt.templates.task_row_class =
+								gantt.templates.task_class = function (start, end, task) {		
+									return "";
+								};
+			
+			// 간트 컬럼 설정
+			gantt.config.columns = [
+				{name: "text", label: "업무명", tree: true, width: 300, template: function (task) {
+					if (task.priority == 1)
+						if(task.users==null||task.users==""){
+							return "<div class='important'>" + task.text + " (" + "미배정" + ") </div>";
+						}else{
+							return "<div class='important'>" + task.text + " (" + task.users + ") </div>";
+						}					
+						return task.text + " (" + task.users + ")";
+				}},
+				{name: "start_date", label: "시작일", align: "center"},
+				{name: "end_date", label: "종료일",width: 90, align: "center"}
+			];
+			
+			// 더블클릭 이벤트
+			gantt.attachEvent("onTaskDblClick",function(id){
+				if(gantt.getTask(id).parent!=0){
+					$("#cruTaks").dialog("option","title","업무 정보 확인");
+					var taskno = id;
+					function gettinfo(taskno){
+						$.ajax({
+					   		type : "post",
+					   		url : "${path}/issue.do?method=tinfo&taskno="+taskno,
+					   		dataType : "json",
+					   		success : function(data){
+					        	$("#add_Task")[0].reset();
+					   			$("#cruTaks [name=taskno]").val(data.task.taskno);
+					   			$("#cruTaks [name=title]").val(data.task.title);
+					   			$("#cruTaks [name=content]").val(data.task.content);
+					   			$("#cruTaks [name=priority]").val(data.task.priority);
+					   			if(data.task.empno==null){
+					   				$("#cruTaks [name=empno]").val("미배정");
+					   			}else{
+						   			$("#cruTaks [name=empno]").val(data.task.empno);
+						   			ori_empno=data.task.empno;
+					   			}
+					   			$("#cruTaks [name=p_startdate]").val(data.task.p_startdate);
+					   			$("#cruTaks [name=p_enddate]").val(data.task.p_enddate);
+					   			$("#cruTaks [name=refno]").val(data.task.refno);
+					   		},
+					   		error : function(err){
+					   			console.log(err);
+					   		}	  
+					   	})
+					}
+					gettinfo(taskno);
+	   				$('textarea').prop('readonly', true);
+	   				$('select').prop('disabled',true);
+	   				$('input').datepicker('option', 'disabled', true);
+	   				$("#btn_name").text("확인");
+					$("#cruTaks").dialog("open");
+				}else{
+					
+				}
+			});
+				
+			gantt.init("gantt_here");
+			
+
+/* 			function resize(){
+				var tab2_height = $("#mainWrapper").height();
+				$("#mainContainer").css("height",tab2_height+150+"px");
+				$("#wholeContainer").css("height",$("#mainContainer").height()+40+"px");
+			}
+			setTimeout(resize, 200); */
+			
+		});
+		
+	});
+	
+	function callNotice(){
+	      var empno = "${mem.empno}";
+	      $.ajax({
+	         type:"post",
+	         url:"${path}/project.do?method=notice&empno="+empno,
+	         dataType:"json",
+	         success:function(data){
+	            var content = "";
+	            for(var i=0;i<data.nlist.length;i++){
+	               content += `<div class="list-group-item list-group-item-action active">`+
+	                              `<div class="notification-info">`+                                                    
+	                              `<div class="notification-list-user-block" style="padding-left:0px;">`+
+	                        `<span class="notice_content text-primary">`+data.nlist[i].text+`</span>`+
+	                             `<div class="notification-date">`+data.nlist[i].notice+`</div>`+
+	                             `</div></div></div>`;
+	            }
+	            $("#notice_wrap").html(content);
+	         },
+	         error:function(err){
+	            console.log(err);
+	         }
+	      });      
+	   }		
+	
+	
+</script>
+</html>
